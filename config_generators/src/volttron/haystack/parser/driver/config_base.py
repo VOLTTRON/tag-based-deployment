@@ -63,6 +63,11 @@ class DriverConfigGenerator:
             raise ValueError(f"Output directory {self.output_dir} "
                              f"does not exist")
         print(f"Output directory {os.path.abspath(self.output_dir)}")
+        self.output_configs = os.path.join(self.output_dir, "configs")
+        os.makedirs(self.output_configs, exist_ok=True)
+        self.output_errors = os.path.join(self.output_dir, "errors")
+        os.makedirs(self.output_errors, exist_ok=True)
+        self.driver_vip = self.config_dict.get("driver_vip", "platform.driver")
 
     @abstractmethod
     def get_ahu_and_vavs(self):
@@ -85,15 +90,15 @@ class DriverConfigGenerator:
             if not result_dict:
                 continue  # no valid configs, move to the next ahu
             if ahu_name:
-                with open(f"{self.output_dir}/{ahu_name}.json", 'w') as outfile:
+                with open(f"{self.output_configs}/{ahu_name}.json", 'w') as outfile:
                     json.dump(result_dict, outfile, indent=4)
             else:
-                with open(f"{self.output_dir}/unmapped_vavs.json", 'w') as outfile:
+                with open(f"{self.output_errors}/unmapped_vavs.json", 'w') as outfile:
                     json.dump(result_dict, outfile, indent=4)
 
         # If unmapped devices exists, write additional unmapped_devices.txt that gives more info to user to map manually
         if self.unmapped_device_details:
-            err_file = f"{self.output_dir}/unmapped_device_details"
+            err_file = f"{self.output_errors}/unmapped_device_details"
             with open(err_file, 'w') as outfile:
                 json.dump(self.unmapped_device_details, outfile, indent=4)
 
@@ -105,6 +110,7 @@ class DriverConfigGenerator:
 
     def generate_ahu_configs(self, ahu_id, vavs):
         final_mapper = dict()
+        final_mapper[self.driver_vip] = []
         ahu = ""
         ahu = self.get_name_from_id(ahu_id)
         # First create the config for the ahu
@@ -113,8 +119,8 @@ class DriverConfigGenerator:
             # replace right variables in driver_config_template
             driver_config = self.generate_config_from_template(ahu_id, "ahu")
             if driver_config:
-                final_mapper[topic] = driver_config
-            topic_pattern = self.vav_topic_pattern.format(ahu=ahu, vav='{vav}') #fill ahu, leave vav variable
+                final_mapper[self.driver_vip].append({"config-name": topic, "config": driver_config})
+            topic_pattern = self.vav_topic_pattern.format(ahu=ahu, vav='{vav}')  # fill ahu, leave vav variable
         else:
             topic_pattern = self.vav_topic_pattern.replace("{ahu}/", "")  # ahu
         # Now loop through and do the same for all vavs
@@ -124,7 +130,7 @@ class DriverConfigGenerator:
             # replace right variables in driver_config_template
             driver_config = self.generate_config_from_template(vav_id, "vav")
             if driver_config:
-                final_mapper[topic] = driver_config
+                final_mapper[self.driver_vip].append({"config-name": topic, "config": driver_config})
         return ahu, final_mapper
 
     @abstractmethod

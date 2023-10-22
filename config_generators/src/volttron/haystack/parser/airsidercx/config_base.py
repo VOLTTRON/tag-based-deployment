@@ -75,6 +75,10 @@ class AirsideRCxConfigGenerator:
             raise ValueError(f"Output directory {self.output_dir} "
                              f"does not exist")
         print(f"Output directory {os.path.abspath(self.output_dir)}")
+        self.output_configs = os.path.join(self.output_dir, "configs")
+        os.makedirs(self.output_configs, exist_ok=True)
+        self.output_errors = os.path.join(self.output_dir, "errors")
+        os.makedirs(self.output_errors, exist_ok=True)
 
         # Initialize map of haystack id and nf device name
         self.equip_id_point_map = dict()
@@ -91,6 +95,7 @@ class AirsideRCxConfigGenerator:
         pass
 
     def generate_configs(self):
+        config_metadata = dict()
         ahu_and_vavs = self.get_ahu_and_vavs()
         if isinstance(ahu_and_vavs, dict):
             iterator = ahu_and_vavs.items()
@@ -100,16 +105,23 @@ class AirsideRCxConfigGenerator:
             ahu_name, result_dict = self.generate_ahu_configs(ahu_id, vavs)
             if not result_dict or not ahu_name:
                 continue  # no valid configs or no valid ahu ref. move to the next ahu
-            with open(f"{self.output_dir}/{ahu_name}.json", 'w') as outfile:
-                json.dump(result_dict, outfile, indent=4)
+            config_file_name = os.path.abspath(f"{self.output_configs}/{ahu_name}.json")
+            with open(config_file_name, 'w') as f:
+                json.dump(result_dict, f, indent=4)
+            config_metadata["airsidercx-" + ahu_name] = [{"config": config_file_name}]
+
+        if config_metadata:
+            config_metafile_name = f"{self.output_dir}/config_metadata.json"
+            with open(config_metafile_name, 'w') as f:
+                json.dump(config_metadata, f, indent=4)
 
         if self.unmapped_device_details:
-            err_file = f"{self.output_dir}/unmapped_device_details"
-            with open(err_file, 'w') as outfile:
-                json.dump(self.unmapped_device_details, outfile, indent=4)
+            err_file_name = f"{self.output_errors}/unmapped_device_details"
+            with open(err_file_name, 'w') as f:
+                json.dump(self.unmapped_device_details, f, indent=4)
 
             sys.stderr.write(f"\nUnable to generate configurations for all AHUs and VAVs. "
-                             f"Please see {err_file} for details\n")
+                             f"Please see {err_file_name} for details\n")
             sys.exit(1)
         else:
             sys.exit(0)

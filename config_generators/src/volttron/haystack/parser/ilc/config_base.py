@@ -106,9 +106,18 @@ class ILCConfigGenerator:
                              f"does not exist")
         print(f"Output directory {os.path.abspath(self.output_dir)}")
 
+        self.output_configs = os.path.join(self.output_dir, "configs")
+        os.makedirs(self.output_configs, exist_ok=True)
+        self.output_errors = os.path.join(self.output_dir, "errors")
+        os.makedirs(self.output_errors, exist_ok=True)
+
+        self.ilc_agent_vip = self.config_dict.get("ilc_agent_vip", "platform.ilc")
+
         # Initialize map of haystack id and nf device name
         self.equip_id_point_map = dict()
         self.equip_id_device_id_map = dict()
+        self.config_metadata_dict = dict()
+        self.config_metadata_dict[self.ilc_agent_vip] = []
 
     def generate_configs(self):
         """
@@ -119,25 +128,30 @@ class ILCConfigGenerator:
 
         error = self.generate_ilc_config()
         if error:
-            err_file = f"{self.output_dir}/unmapped_device_details"
-            with open(err_file, 'w') as outfile:
+            err_file_name = f"{self.output_errors}/unmapped_device_details"
+            with open(err_file_name, 'w') as outfile:
                 json.dump(error, outfile, indent=4)
 
             sys.stderr.write(f"\nUnable to generate ilc configuration due to missing device or point. "
-                             f"Please see {err_file} for details\n")
+                             f"Please see {err_file_name} for details\n")
             sys.exit(1)
 
         # Generated ilc config. Now generated config with vav details
         self.generate_control_config()
         self.generate_criteria_config()
 
+        if self.config_metadata_dict[self.ilc_agent_vip] :
+            config_metafile_name = f"{self.output_dir}/config_metadata.json"
+            with open(config_metafile_name, 'w') as f:
+                json.dump(self.config_metadata_dict, f, indent=4)
+
         if self.unmapped_device_details:
-            err_file = f"{self.output_dir}/unmapped_device_details"
-            with open(err_file, 'w') as outfile:
+            err_file_name = f"{self.output_errors}/unmapped_device_details"
+            with open(err_file_name, 'w') as outfile:
                 json.dump(self.unmapped_device_details, outfile, indent=4)
 
             sys.stderr.write(f"\nUnable to generate configurations for all AHUs and VAVs. "
-                             f"Please see {err_file} for details\n")
+                             f"Please see {err_file_name} for details\n")
             sys.exit(1)
         else:
             sys.exit(0)
@@ -164,7 +178,10 @@ class ILCConfigGenerator:
                 sys.exit(1)
 
         # write pairwise criteria file
-        shutil.copy(self.pairwise_path, os.path.join(self.output_dir, f"{self.device_type}_criteria_matrix.json"))
+        file_name = f"{self.device_type}_criteria_matrix.json"
+        file_path = os.path.abspath(os.path.join(self.output_configs, file_name))
+        shutil.copy(self.pairwise_path, file_path)
+        self.config_metadata_dict[self.ilc_agent_vip].append({"config-name": file_name, "config": file_path})
 
     def generate_ilc_config(self):
         try:
@@ -184,8 +201,11 @@ class ILCConfigGenerator:
                 self.power_meter_name = self.get_name_from_id(self.power_meter_id)
             self.ilc_template["power_meter"]["device_topic"] = self.topic_prefix + self.power_meter_name
             self.ilc_template["power_meter"]["point"] = building_power_point
-            with open(f"{self.output_dir}/ilc.config", 'w') as outfile:
+            file_path = os.path.abspath(os.path.join(self.output_configs, "ilc.config"))
+            with open(file_path, 'w') as outfile:
                 json.dump(self.ilc_template, outfile, indent=4)
+
+            self.config_metadata_dict[self.ilc_agent_vip].append({"config-name": "config", "config": file_path})
             # missing device or point will result in error. So if we wrote the config return
             return None
 
@@ -268,8 +288,11 @@ class ILCConfigGenerator:
             control_config[vav_topic] = {vav: config}
 
         if control_config:
-            with open(f"{self.output_dir}/{self.device_type}_control.config", 'w') as outfile:
+            file_name = f"{self.device_type}_control.config"
+            file_path = os.path.abspath(os.path.join(self.output_configs, file_name))
+            with open(file_path, 'w') as outfile:
                 json.dump(control_config, outfile, indent=4)
+            self.config_metadata_dict[self.ilc_agent_vip].append({"config-name": file_name, "config": file_path})
 
     def generate_criteria_config(self):
         # sort the list of point before doing find and replace of volttron point name with actual point names
@@ -345,8 +368,11 @@ class ILCConfigGenerator:
             criteria_config[vav_topic] = {vav: curtail_config}
 
         if criteria_config:
-            with open(f"{self.output_dir}/{self.device_type}_criteria.config", 'w') as outfile:
+            file_name = f"{self.device_type}_criteria.config"
+            file_path = os.path.abspath(os.path.join(self.output_configs, file_name))
+            with open(file_path, 'w') as outfile:
                 json.dump(criteria_config, outfile, indent=4)
+            self.config_metadata_dict[self.ilc_agent_vip].append({"config-name": file_name, "config": file_path})
 
     @staticmethod
     def replace_point_names(search_obj, point_mapping, volttron_point_list):

@@ -52,6 +52,10 @@ class AirsideEconomizerConfigGenerator:
             raise ValueError(f"Output directory {self.output_dir} "
                              f"does not exist")
         print(f"Output directory {os.path.abspath(self.output_dir)}")
+        self.output_configs = os.path.join(self.output_dir, "configs")
+        os.makedirs(self.output_configs, exist_ok=True)
+        self.output_errors = os.path.join(self.output_dir, "errors")
+        os.makedirs(self.output_errors, exist_ok=True)
 
         # # Airside economizer point name to metadata(miniDis/Dis field) map
         # "supply_fan_status": "s:SaFanCmd",  # supply fan run command
@@ -76,8 +80,8 @@ class AirsideEconomizerConfigGenerator:
         pass
 
     def generate_configs(self):
+        config_metadata = dict()
         results = self.get_ahus()
-        print(f"Got ahus as {results}")
 
         for ahu in results:
             if isinstance(ahu, str):
@@ -88,16 +92,23 @@ class AirsideEconomizerConfigGenerator:
             ahu_name, result_dict = self.generate_ahu_configs(ahu_id)
 
             if result_dict:
-                with open(f"{self.output_dir}/{ahu_name}.json", 'w') as outfile:
+                config_file_name = os.path.abspath(f"{self.output_configs}/{ahu_name}.json")
+                with open(config_file_name, 'w') as outfile:
                     json.dump(result_dict, outfile, indent=4)
+                config_metadata["airside-economizer-" + ahu_name] = [{"config": config_file_name}]
+
+        if config_metadata:
+            config_metafile_name = f"{self.output_dir}/config_metadata.json"
+            with open(config_metafile_name, 'w') as f:
+                json.dump(config_metadata, f, indent=4)
 
         if self.unmapped_device_details:
-            err_file = f"{self.output_dir}/unmapped_device_details"
-            with open(err_file, 'w') as outfile:
+            err_file_name = f"{self.output_errors}/unmapped_device_details"
+            with open(err_file_name, 'w') as outfile:
                 json.dump(self.unmapped_device_details, outfile, indent=4)
 
             sys.stderr.write(f"\nUnable to generate configurations for all AHUs. "
-                             f"Please see {err_file} for details\n")
+                             f"Please see {err_file_name} for details\n")
             sys.exit(1)
         else:
             sys.exit(0)

@@ -44,6 +44,9 @@
      # Optional directory where all generated configs should go
      #"output_dir":"ilc_configs_from_config1",
 
+     # Optional ilc agent's vip identity. defaults to platform.ilc
+     # "ilc_agent_vip": "platform.ilc",
+
      "config_template": {
 
         # ###### Pairwise criteria #######
