@@ -82,21 +82,30 @@ class IntellimationDriverConfigGenerator(DriverConfigGenerator):
         query = query + " LIMIT 1"
 
         result = self.execute_query(query)
+        err_msg = None
+        device_id = None
+        topic_name = None
+        object_name = None
         if result:
             device_id, topic_name = result[0]
             if equip_type == "vav" and equip_id in self.unmapped_device_details:
                 # grab the topic_name to shed some light into ahu mapping
                 self.unmapped_device_details[equip_id]["topic_name"] = topic_name
-            object_name = self.get_object_name_from_topic(topic_name,
-                                                          equip_type)
-            return topic_name, device_id, object_name
+            try:
+                object_name = self.get_object_name_from_topic(topic_name,
+                                                              equip_type)
+            except ValueError as v:
+                err_msg = v.args[0]
+                topic_name = device_id = object_name = None
         else:
+            err_msg = f"Unable to find any points for {equip_id} from table:{self.point_table}"
+        if err_msg:
             if not self.unmapped_device_details.get(equip_id):
                 self.unmapped_device_details[equip_id] = dict()
             self.unmapped_device_details[equip_id]["type"] = equip_type
-            self.unmapped_device_details[equip_id]["error"] = f"Unable to find any points for {equip_id} from " \
-                                                              f"table:{self.point_table}"
-            return None, None, None
+            self.unmapped_device_details[equip_id]["error"] = err_msg
+
+        return topic_name, device_id, object_name
 
     def get_object_name_from_topic(self, topic_name, equip_type):
         # need device name only if device id is not unique
@@ -107,7 +116,7 @@ class IntellimationDriverConfigGenerator(DriverConfigGenerator):
                 m = re.search(self.ahu_name_pattern, part)
                 if m is None:
                     raise ValueError(
-                        f"Unable to ahu object name from {topic_name} "
+                        f"Unable to get ahu object name from {topic_name} "
                         f"using pattern {self.ahu_name_pattern}")
                 match = m.group(0)
                 return match.replace("[", "(").replace("]", ")")
