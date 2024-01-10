@@ -50,9 +50,7 @@ class IntellimationDriverConfigGenerator(DriverConfigGenerator):
                 WHERE tags->>'ahu'='m:' "
         if self.site_id:
             query = query + f" AND tags->>'siteRef'='{self.site_id}' "
-        #print(query)
         ahu_list = [x[0] for x in self.execute_query(query)]
-        #print(f"ahu_list is {ahu_list}")
         if len(ahu_list) > len(result):  # There were ahus without vavs. Add those to result
             for a in set(ahu_list) - set([x[0] for x in result]):
                 result.append((a, []))
@@ -63,18 +61,15 @@ class IntellimationDriverConfigGenerator(DriverConfigGenerator):
                         WHERE tags->>'vav'='m:' AND (tags->>'ahuRef' is NULL OR tags->>'ahuRef' = '')"
         if self.site_id:
             query = query + f" AND tags->>'siteRef'='{self.site_id}' "
-        #print(query)
         temp = self.execute_query(query)
         if temp:
             unmapped_vav_list = [x[0] for x in temp]
-            #print(unmapped_vav_list)
             result.append(("", unmapped_vav_list))
             for vav in unmapped_vav_list:
                 self.unmapped_device_details[vav] = {"type": "vav", "error": "Unable to find ahuRef"}
         return result
 
     def get_building_meter(self):
-        print('IN GET_BUILDING_METER :)')
         if self.configured_power_meter_id:
             query = f"SELECT tags->>'id' \
                       FROM {self.equip_table} \
@@ -98,8 +93,8 @@ class IntellimationDriverConfigGenerator(DriverConfigGenerator):
                 raise ValueError(f"More than one equipment found with the id {self.configured_power_meter_id}. Please "
                                  f"add 'power_meter_id' parameter to configuration to uniquely identify whole "
                                  f"building power meter")
-        return ""
-
+        raise ValueError(f"Unable to find building power meter using power_meter_tag {self.power_meter_tag} or "
+                         f"configured power_meter_id {self.configured_power_meter_id}")
 
     def query_device_id_name(self, equip_id, equip_type):
         query = f"SELECT device_name, topic_name \
