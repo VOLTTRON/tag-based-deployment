@@ -130,6 +130,21 @@
                         "maximum": 10.0
                     }
             }
+        },
+
+        # ######### zone type configuration that is part of criteria config file#################
+        "mapper_config":{
+            "zone_type": {
+                "Computer Lab": 2,
+                "Conference Room": 1,
+                "Directors office": 1,
+                "Empty Office": 7,
+                "Kitchen": 6,
+                "Mechanical Room": 9,
+                "Mixed": 4,
+                "Office": 3
+            }
         }
+
     }
  }
