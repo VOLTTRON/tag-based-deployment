@@ -36,30 +36,63 @@ class JsonDriverConfigGenerator(DriverConfigGenerator):
         self.equip_id_device_id_map = dict()
         self.ahu_name_pattern = re.compile(r"\[\d+\]")
         self.equip_id_topic_name_map = dict()
+        self.ahu_dict = None
 
-    def get_ahu_and_vavs(self):
+    def _populate_equip_details(self):
         rows = self.equip_json['rows']
-        vav_list = []
-        ahu_dict = defaultdict(list)
+        self.ahu_dict = defaultdict(list)
         for _d in rows:
+
+            # Check for power meter
+            if self.configured_power_meter_id:
+                if _d['id'] == self.configured_power_meter_id:
+                    if self.power_meter_id is None:
+                        self.power_meter_id = _d['id']
+                    else:
+                        raise ValueError(
+                            f"More than one equipment found with the id {self.configured_power_meter_id}. Please "
+                            f"add 'power_meter_id' parameter to configuration to uniquely identify whole "
+                            f"building power meter")
+            else:
+                if self.power_meter_tag in _d:  # if tagged as whole building power meter
+                    if self.power_meter_id is None:
+                        self.power_meter_id = _d['id']
+                    else:
+                        raise ValueError(f"More than one equipment found with the tag {self.power_meter_tag}. Please "
+                                         f"add 'power_meter_id' parameter to configuration to uniquely identify whole "
+                                         f"building power meter")
+
+            # check for ahu and vav
             id_list = _d["id"].split(".")
             device = id_list[-1] if id_list else ""
             if "vav" in _d:  # if it tagged as vav
-                vav_list.append(_d)
                 ahu_id = _d.get("ahuRef")
                 if ahu_id:
-                    ahu_dict[ahu_id].append(_d["id"])
+                    self.ahu_dict[ahu_id].append(_d["id"])
                 else:
                     # add to the list of unmapped
-                    ahu_dict[""].append(_d["id"])
+                    self.ahu_dict[""].append(_d["id"])
                     self.unmapped_device_details[_d["id"]] = {"type": "vav", "error": "Unable to find ahuRef"}
                 self.vav_list.append(_d["id"])
             elif "ahu" in _d:  # if it is tagged as ahu
                 self.ahu_list.append(_d["id"])
-        if not set(self.ahu_list).issubset(set(ahu_dict)):
-            for a in set(self.ahu_list) - set(ahu_dict):
-                ahu_dict[a] = []
-        return ahu_dict
+        if not set(self.ahu_list).issubset(set(self.ahu_dict)):
+            for a in set(self.ahu_list) - set(self.ahu_dict):
+                self.ahu_dict[a] = []
+
+    def get_ahu_and_vavs(self):
+        if not self.ahu_dict:
+            self._populate_equip_details()
+        return self.ahu_dict
+
+    def get_building_meter(self):
+        if not self.power_meter_id:
+            self._populate_equip_details()
+        if self.power_meter_id:
+            return self.power_meter_id
+        else:
+            raise ValueError(f"Unable to find building power meter using power_meter_tag {self.power_meter_tag} or "
+                             f"configured power_meter_id {self.configured_power_meter_id}")
 
     def get_nf_device_id_and_name(self, equip_id, equip_type="vav"):
 
@@ -78,12 +111,13 @@ class JsonDriverConfigGenerator(DriverConfigGenerator):
                     if _d["equipRef"] in self.unmapped_device_details:
                         # grab the topic_name to shed some light into ahu mapping
                         self.unmapped_device_details[_d["equipRef"]]["topic_name"] = _d["topic_name"]
-                elif _d["equipRef"] in self.ahu_list:
+                elif _d["equipRef"] in self.ahu_list or _d["equipRef"] == self.power_meter_id:
                     self.equip_id_topic_name_map[_d["equipRef"]] = _d["topic_name"]
+                    equip_type = "meter" if _d["equipRef"] == self.power_meter_id else "ahu"
                     try:
                         self.equip_id_device_name_map[_d["equipRef"]] = \
                             self.get_object_name_from_topic(_d["topic_name"],
-                                                            "ahu")
+                                                            equip_type)
                         self.equip_id_device_id_map[_d["equipRef"]] = \
                             _d["topic_name"].split("/")[4]
                     except ValueError:
@@ -92,6 +126,7 @@ class JsonDriverConfigGenerator(DriverConfigGenerator):
                         # with topic name matching the pattern we will use that
                         print(f"Ignoring point {_d['topic_name']}")
                         continue
+
 
         return self.equip_id_device_id_map.get(equip_id), self.equip_id_device_name_map.get(equip_id)
 
@@ -109,8 +144,10 @@ class JsonDriverConfigGenerator(DriverConfigGenerator):
                         f"using pattern {self.ahu_name_pattern}")
                 match = m.group(0)
                 return match.replace("[", "(").replace("]", ")")
-            else:
+            elif equip_type == "vav":
                 return topic_name.split("/")[-1].split(":")[0]
+            else:
+                return topic_name.split("/")[-1]
         return ""
 
     def generate_config_from_template(self, equip_id, equip_type):
@@ -134,7 +171,9 @@ class JsonDriverConfigGenerator(DriverConfigGenerator):
             return driver
 
     def get_name_from_id(self, id):
-        name = id.split(".")[-1]
+        name = None
+        if id:
+            name = id.split(".")[-1]
         return name
 
 

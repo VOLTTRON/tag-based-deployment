@@ -50,6 +50,9 @@ class DriverConfigGenerator:
 
         self.power_meter_tag = 'siteMeter'
         self.configured_power_meter_id = self.config_dict.get("power_meter_id", "")
+        self.power_meter_name = self.config_dict.get("building_power_meter", "")
+
+        self.power_meter_id = None
 
         # If there are any vav's that are not mapped to a AHU use this dict to give additional details for user
         # to help manually find the corresponding ahu
@@ -109,10 +112,11 @@ class DriverConfigGenerator:
                     json.dump(result_dict, outfile, indent=4)
 
         try:
-            power_meter_id = self.get_building_meter()
+            self.get_building_meter()
         except ValueError as e:
             return {"building_power_meter": {"error": f"Unable to locate building power meter: Error: {e}"}}
-        meter_name, result_dict = self.generate_meter_config(power_meter_id)
+
+        meter_name, result_dict = self.generate_meter_config()
         with open(f"{self.output_configs}/{meter_name}.json", 'w') as outfile:
             json.dump(result_dict, outfile, indent=4)
 
@@ -128,14 +132,13 @@ class DriverConfigGenerator:
         else:
             sys.exit(0)
 
-    def generate_meter_config(self, meter_id):
-        print('IN GENERATE_METER_CONFIG :)')
+    def generate_meter_config(self):
         final_mapper = dict()
         final_mapper[self.driver_vip] = []
         meter = ""
-        meter = self.get_name_from_id(meter_id)
+        meter = self.get_name_from_id(self.power_meter_id)
         topic = self.meter_topic_pattern.format(meter)
-        driver_config = self.generate_config_from_template(meter_id, 'meter')
+        driver_config = self.generate_config_from_template(self.power_meter_id, 'meter')
         if driver_config:
             final_mapper[self.driver_vip].append({"config-name": topic, "config": driver_config})
         return meter, final_mapper
