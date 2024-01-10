@@ -148,7 +148,7 @@ class AirsideRCxConfigGenerator:
         if not point_mapping.get("fan_status") and not point_mapping.get("fan_speedcmd"):
             # Cannot proceed. Add detals to unmapped devices dict and return None
             self.unmapped_device_details[ahu_id] = {"type": "ahu",
-                                                    "error": "Neither fan_status nor fan_speed point is available",
+                                                    "error": "Neither fan_status nor fan_speedcmd point is available",
                                                     "topic_name": self.equip_id_point_topic_map.get(ahu_id)}
 
             return ahu, None

@@ -18,13 +18,20 @@
 
      # metadata value to indentity the specific points and hence its name in this setup
      "point_meta_map": {
+            # fan_status or fan_speedcmd one of the two should be available for airsidercx
             "fan_status": "s:SaFanCmd",
+            "fan_speedcmd": "s:SaFanSpdCmd",
+
             "zone_reheat": "s:RhtVlvPos",
+
+            # will raise warning message if no point of this type - zone_damper - is found
             "zone_damper": "s:DmpCmd",
+
+            # will raise warning message if no point of this type is found
             "duct_stcpr": "s:SaPress",
+
             "duct_stcpr_stpt": "s:SaPressSp",
             "sa_temp": "s:SaTemp",
-            "fan_speedcmd": "s:SaFanSpdCmd",
             "sat_stpt": "s:SaTempSp"
         },
      # The field that contains the above point metadata
