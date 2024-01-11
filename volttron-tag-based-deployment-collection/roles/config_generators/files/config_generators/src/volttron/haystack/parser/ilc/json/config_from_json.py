@@ -82,6 +82,8 @@ class JsonILCConfigGenerator(ILCConfigGenerator):
             return point_name
 
     def get_vavs_with_ahuref(self):
+        if not self.vav_dict:
+            self._populate_equip_details()
         return self.vav_dict
 
     # Should be overridden for different sites if parsing logic is different

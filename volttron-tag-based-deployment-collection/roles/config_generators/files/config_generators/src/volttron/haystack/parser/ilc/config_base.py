@@ -37,6 +37,7 @@ class ILCConfigGenerator:
         self.topic_prefix = self.topic_prefix + self.building + "/" if self.building else ""
         self.power_meter_tag = 'siteMeter'
         self.power_meter_name = self.config_dict.get("building_power_meter", "")
+        self.building_power_point = self.config_dict.get("building_power_point", "")
         self.configured_power_meter_id = self.config_dict.get("power_meter_id", "")
 
         self.power_meter_id = None
@@ -127,21 +128,13 @@ class ILCConfigGenerator:
 
         self.generate_pairwise_config()
 
-        error = self.generate_ilc_config()
-        if error:
-            err_file_name = f"{self.output_errors}/unmapped_device_details"
-            with open(err_file_name, 'w') as outfile:
-                json.dump(error, outfile, indent=4)
-
-            sys.stderr.write(f"\nUnable to generate ilc configuration due to missing device or point. "
-                             f"Please see {err_file_name} for details\n")
-            sys.exit(1)
+        self.generate_ilc_config()
 
         # Generated ilc config. Now generated config with vav details
         self.generate_control_config()
         self.generate_criteria_config()
 
-        if self.config_metadata_dict[self.ilc_agent_vip] :
+        if self.config_metadata_dict[self.ilc_agent_vip]:
             config_metafile_name = f"{self.output_dir}/config_metadata.json"
             with open(config_metafile_name, 'w') as f:
                 json.dump(self.config_metadata_dict, f, indent=4)
@@ -185,48 +178,56 @@ class ILCConfigGenerator:
         self.config_metadata_dict[self.ilc_agent_vip].append({"config-name": file_name, "config": file_path})
 
     def generate_ilc_config(self):
-        try:
-            self.power_meter_id = self.get_building_power_meter()
-        except ValueError as e:
-            return {"building_power_meter": {"error": f"Unable to locate building power meter: Error: {e}"}}
+        if not self.power_meter_name or not self.building_power_point:
+            # if both are provided then use that don't try to look up device or point.
+            # it might be a power meter agent and no actual power meter device
+            try:
+                self.power_meter_id = self.get_building_power_meter()
+                if not self.power_meter_id:
+                    self.unmapped_device_details["building_power_meter"] = {
+                        "type": "building power meter",
+                        "error": "Unable to locate building power meter"}
+            except ValueError as e:
+                # more than one power meter found either using siteMeter tag or with configured power meter id
+                self.unmapped_device_details["building_power_meter"] = {
+                    "type": "building power meter",
+                    "error": f"Unable to locate building power meter: Error: {e}"}
 
-        try:
-            building_power_point = self.get_building_power_point()
-        except ValueError as e:
-            return {self.power_meter_id: {"error": f"Unable to locate building power point using the metadata "
-                                                   f"{self.building_power_point_type}. {e}"}}
+            if not self.building_power_point:
+                self.building_power_point = self.get_building_power_point()
 
-        # Success case
-        if self.power_meter_id and building_power_point:
-            if not self.power_meter_name:
+            if not self.building_power_point and \
+                    self.power_meter_id and \
+                    not self.unmapped_device_details.get(self.power_meter_id):
+                self.unmapped_device_details[self.power_meter_id] = {
+                    "type": "building power meter",
+                    "error": f"Unable to locate building power point using the metadata "
+                             f"{self.building_power_point_type}"}
+
+            if not self.power_meter_name and self.power_meter_id:
                 self.power_meter_name = self.get_name_from_id(self.power_meter_id)
-            self.ilc_template["power_meter"]["device_topic"] = self.topic_prefix + self.power_meter_name
-            self.ilc_template["power_meter"]["point"] = building_power_point
-            file_path = os.path.abspath(os.path.join(self.output_configs, "ilc.config"))
-            with open(file_path, 'w') as outfile:
-                json.dump(self.ilc_template, outfile, indent=4)
 
-            self.config_metadata_dict[self.ilc_agent_vip].append({"config-name": "config", "config": file_path})
-            # missing device or point will result in error. So if we wrote the config return
-            return None
+            #  Error case
+            if not self.power_meter_name and not self.unmapped_device_details["building_power_meter"]:
+                err = f"Unable to locate building power meter using the tag '{self.power_meter_tag}' "
+                if self.configured_power_meter_id:
+                    err = f"Unable to locate building power meter using id '{self.configured_power_meter_id}' "
 
-        #  Error case
-        if not self.power_meter_id:
-            err = f"Unable to locate building power meter using the tag '{self.power_meter_tag}' "
-            if self.configured_power_meter_id:
-                err = f"Unable to locate building power meter using id '{self.configured_power_meter_id}' "
+                self.unmapped_device_details["building_power_meter"] = {
+                    "type": "building power meter",
+                    "error": err
+                }
 
-            return {"building_power_meter": {"error": err}}
+        # Generate ilc config file and metadata
+        self.ilc_template["power_meter"]["device_topic"] = self.topic_prefix + self.power_meter_name
+        self.ilc_template["power_meter"]["point"] = self.building_power_point
+        file_path = os.path.abspath(os.path.join(self.output_configs, "ilc.config"))
+        with open(file_path, 'w') as outfile:
+            json.dump(self.ilc_template, outfile, indent=4)
 
-        if not building_power_point:
-            if self.unmapped_device_details:
-                return self.unmapped_device_details
-            else:
-                return {self.power_meter_id: {"error": f"Unable to locate building power point using the metadata "
-                                                       f"{self.building_power_point_type}"}}
+        self.config_metadata_dict[self.ilc_agent_vip].append({"config-name": "config", "config": file_path})
 
     def generate_control_config(self):
-
         control_config = dict()
 
         vav_details = self.get_vavs_with_ahuref()

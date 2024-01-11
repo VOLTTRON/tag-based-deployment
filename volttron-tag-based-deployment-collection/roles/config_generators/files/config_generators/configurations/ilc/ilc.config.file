@@ -1,7 +1,7 @@
  {
      "metadata": {
-        "equip_json": "/home/volttron/git/intellimation/tag-based-deployment/config_generators/json/anacostia_hs_equip_haystack.json",
-        "points_json": "/home/volttron/git/intellimation/tag-based-deployment/config_generators/json/anacostia_hs_points_haystack.json"
+         "equip_json": "/home/volttron/git/intellimation/intellimation_tcf/json/anacostia_hs_equip_haystack.json",
+         "points_json": "/home/volttron/git/intellimation/intellimation_tcf/json/anacostia_hs_points_haystack.json"
         },
      "site_id": "r:@intellimation.dc_dgs.dcps.anacostia_hs",
 
@@ -11,19 +11,30 @@
      # optional. if not provided will be derived from site_id.split('.')[-1]
      #"building": "anacostia_hs",
 
-     # optional device name of whole building electric meter.
-     # this should match the device name used by driver so that topic names match.
-     # i.e. devices/<campus>/<building>/<building_power_meter> should be the topic prefix for the driver data
-     #
-     # haystack tag "siteMeter" is used to identify power meter. If no building_power_meter is provided in this config
-     # power meter name is derived from id attribute of device and used as building power meter name
+     ######### Configuration to identify whole building power meter. This required for ILC.  ##################
+     ######### SHOULD MATCH the device name used by driver so that topic names match. ###########
+     ######### i.e. devices/<campus>/<building>/<building_power_meter> should be the topic prefix for the driver data
 
-     #"building_power_meter": "",
+     #### Three ways supported to identity power meter ####
 
-     # optional building power meter id. If there are multiple entities with the tag "siteMeter" then provide the
-     # id of the power meter to use for ILC
+     #### 1. Identify based on haystack tag. Default method used by code ####
+     # haystack tag "siteMeter" is used to identify power meter.
+     # power meter name is derived from id attribute of device and used as building power meter name. Optionally,
+     # a custom power meter topic name can be provided using the configuration "building_power_meter", in this case
+     # power meter device and its points are identified using haystack tags but configured "building_power_meter" is
+     # used to derive device topic name, devices/<campus>/<building>/<building_power_meter>
+
+     ##### 2. Use building power meter id. If there are multiple entities with the tag "siteMeter" then provide the
+     ##### id of the power meter to use for ILC. id should exists in the tagging data store
 
      "power_meter_id": "r:@intellimation.dc_dgs.dcps.anacostia_hs.electric_meter_-_building",
+
+     ##### 3. When there is no power meter and agent is used to post data as powermeter - i.e. simulated power meter
+     ##### specify both the "building_power_meter" and "building_power_point" attributes. In this case, config
+     ##### generator will not do any validation of the device and generate ilc config with given names
+
+     #"building_power_meter": "custom building meter topic",
+     #"building_power_point": "efg",
 
      # metadata value to identify the specific points and hence its name in this setup
      # Should include all points used in control and criteria configs.
