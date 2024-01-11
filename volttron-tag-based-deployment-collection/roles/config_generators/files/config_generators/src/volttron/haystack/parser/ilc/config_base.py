@@ -40,11 +40,11 @@ class ILCConfigGenerator:
         self.building_power_point = self.config_dict.get("building_power_point", "")
         self.configured_power_meter_id = self.config_dict.get("power_meter_id", "")
 
-        self.power_meter_id = None
-
         self.point_meta_map = self.config_dict.get("point_meta_map")
-        self.point_meta_field = self.config_dict.get("point_meta_field",
-                                                     "miniDis")
+        self.point_meta_field = self.config_dict.get("point_meta_field", "miniDis")
+        self.point_default_map = self.config_dict.get("point_default_map", dict())
+
+        self.power_meter_id = None
         self.building_power_point_type = self.point_meta_map["WholeBuildingPower"]
 
         self.volttron_point_types_vav = [x for x in self.point_meta_map if x != "WholeBuildingPower"]
@@ -195,6 +195,8 @@ class ILCConfigGenerator:
 
             if not self.building_power_point:
                 self.building_power_point = self.get_building_power_point()
+                if not self.building_power_point:
+                    self.building_power_point = self.point_default_map.get("WholeBuildingPower", "")
 
             if not self.building_power_point and \
                     self.power_meter_id and \
@@ -249,6 +251,9 @@ class ILCConfigGenerator:
             # get vav point name
             for volttron_point_type in self.volttron_point_types_vav:
                 point_name = self.get_point_name(vav_id, "vav", volttron_point_type)
+                if not point_name:
+                    # see if there is a default
+                    point_name = self.point_default_map.get(volttron_point_type, "")
                 if point_name:
                     point_mapping[volttron_point_type] = point_name
                 else:
@@ -323,6 +328,9 @@ class ILCConfigGenerator:
             # get vav point name
             for volttron_point_type in self.volttron_point_types_vav:
                 point_name = self.get_point_name(vav_id, "vav", volttron_point_type)
+                if not point_name:
+                    # see if there is a default
+                    point_name = self.point_default_map.get(volttron_point_type, "")
                 if point_name:
                     point_mapping[volttron_point_type] = point_name
                 else:
