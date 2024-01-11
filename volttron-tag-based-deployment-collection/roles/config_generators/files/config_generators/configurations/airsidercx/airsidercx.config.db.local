@@ -37,6 +37,14 @@
      # The field that contains the above point metadata
      "point_meta_field": "dis",
 
+     # optional point default value if no point name can be found using metadata/tags a default value can be provided
+     # useful in cases where we know point exists but tagging is incomplete.
+     # keys for below dict should be subset of key in point_meta_map
+
+     #"point_default_map": {
+     #   "mixed_air_temperature" : "default_name"
+     #},
+
      "output_dir":"airsidercx_configs_from_db",
      "config_template": {
         "analysis_name": "AirsideAIRCx",

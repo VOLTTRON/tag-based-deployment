@@ -39,6 +39,8 @@ class AirsideRCxConfigGenerator:
         self.point_meta_map = self.config_dict.get("point_meta_map")
         self.point_meta_field = self.config_dict.get("point_meta_field",
                                                      "miniDis")
+        self.point_default_map = self.config_dict.get("point_default_map", dict())
+
         # Initialize point mapping for airsidercx config
         self.point_mapping = {x: [] for x in self.point_meta_map.keys()}
         self.volttron_point_types_ahu = ["fan_status", "duct_stcpr", "duct_stcpr_stpt",
@@ -141,6 +143,9 @@ class AirsideRCxConfigGenerator:
         ahu_point_name_map = dict()
         for volttron_point_type in self.volttron_point_types_ahu:
             point_name = self.get_point_name(ahu_id, "ahu", volttron_point_type)
+            if not point_name:
+                # see if there is a default
+                point_name = self.point_default_map.get(volttron_point_type, "")
             point_mapping[volttron_point_type] = point_name
 
         # varify if mandatory ahu points are there
@@ -170,6 +175,9 @@ class AirsideRCxConfigGenerator:
             # get vav point name
             for volttron_point_type in self.volttron_point_types_vav:
                 point_name = self.get_point_name(vav_id, "vav", volttron_point_type)
+                if not point_name:
+                    # see if there is a default
+                    point_name = self.point_default_map.get(volttron_point_type, "")
                 if point_name:
                     point_mapping[volttron_point_type].add(point_name)
 
