@@ -11,8 +11,7 @@
      # optional. if not provided will be derived from site_id.split('.')[-1]
      #"building": "building1",
 
-     # metadata value to indentity the specific points and hence its name in this setup
-     # metadata value to indentity the specific points and hence its name in this setup
+     # metadata value to indentify the specific points and hence its name in this setup
      "point_meta_map": {
             "supply_fan_status": "SaFanCmd", # supply fan run command
             "outdoor_air_temperature": "OaTemp",
@@ -25,6 +24,14 @@
         },
      # The field that contains the above point metadata
      "point_meta_field": "miniDis",
+
+     # optional point default value if no point name can be found using metadata/tags a default value can be provided
+     # useful in cases where we know point exists but tagging is incomplete.
+     # keys for below dict should be subset of key in point_meta_map
+
+     "point_default_map": {
+        "mixed_air_temperature" : "default_name"
+     },
 
      #"output_dir":"airside_economizer_configs_from_db",
      "config_template": {

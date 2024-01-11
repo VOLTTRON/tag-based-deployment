@@ -70,6 +70,7 @@ class AirsideEconomizerConfigGenerator:
         # "supply_fan_speed": "s:SaFanSpdCmd"
         self.point_meta_map = self.config_dict.get("point_meta_map")
         self.point_meta_field = self.config_dict.get("point_meta_field", "miniDis")
+        self.point_default_map = self.config_dict.get("point_default_map", dict())
         # Initialize point mapping for airsidercx config
         self.point_mapping = {x: "" for x in self.point_meta_map.keys()}
 
@@ -128,6 +129,8 @@ class AirsideEconomizerConfigGenerator:
             point_name = self.get_point_name(ahu_id, "ahu", volttron_point_type)
             if point_name:
                 point_mapping[volttron_point_type] = point_name
+            elif self.point_default_map.get(volttron_point_type):
+                point_mapping[volttron_point_type] = self.point_default_map.get(volttron_point_type)
             else:
                 missing_points.append(volttron_point_type)
 
