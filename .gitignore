@@ -9,5 +9,5 @@ __pycache__
 agent_configs/*
 group_vars/*
 host_vars/*
-hosts.yml
+intellimation_hosts.yml
 foo.yml
