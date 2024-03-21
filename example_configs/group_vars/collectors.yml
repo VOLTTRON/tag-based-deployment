@@ -196,5 +196,5 @@ normal:
     address: localhost
     port: 8080
   bacnet_priority: 14
-  query: "@period:[1, +inf] @attr_device_id:[{device_id},{device_id}] @attr_prop_object_name: {obj_name}"
+  query: "@period:[1, +inf] @attr_hpl\:bacnet\:1_device_id:[{device_id},{device_id}]"
   topic_name_format: "object_name:{prop_object_name}"

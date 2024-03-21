@@ -7,19 +7,6 @@
     http_proxy: "{{ http_proxy }}"
     https_proxy: "{{ https_proxy }}"
 
-- name: Find Normal Framework Tarball
-  ansible.builtin.find:
-    paths: "{{ansible_env.HOME}}/volttron-interface/"
-    patterns: "normalgw-*.tar.gz"
-  register: normal_tarball
-
-- name: Install Normal Framework
-  ansible.builtin.pip:
-    name: file:///{{normal_tarball.files[0].path}}
-    executable: "{{ volttron_venv }}/bin/pip"
-  environment:
-    http_proxy: "{{ http_proxy }}"
-    https_proxy: "{{ https_proxy }}"
 
 - name: Install Normal Interface
   ansible.builtin.copy:
