@@ -13,7 +13,7 @@
 - name: Run Driver Generator from JSON
   ansible.builtin.shell:
     cmd: "{{ venv_for_ansible }}/bin/config-gen-json.driver {{ host_configs_dir }}/driver_generator_config.json"
-    chdir: "{{ ansible_env.HOME }}/config_generators/src/volttron/haystack/parser/driver/"
+    #chdir: "{{ ansible_env.HOME }}/config_generators/src/volttron/haystack/parser/driver/"
   register: generator_return_json
   failed_when: generator_return_json.rc < 0 or generator_return_json.rc > 1
   when: site_info.data_source == 'json'
@@ -26,8 +26,8 @@
 
 - name: Run Driver Generator from Database
   ansible.builtin.shell:
-    cmd: "{{ ansible_python_interpreter }} config_intellimation.py {{ host_configs_dir }}/driver_generator_config.json"
-    chdir: "{{ ansible_env.HOME }}/config_generators/src/volttron/haystack/parser/driver/intellimation"
+    cmd: "{{ venv_for_ansible }}/bin/config-gen-db.driver {{ host_configs_dir }}/driver_generator_config.json"
+    #chdir: "{{ ansible_env.HOME }}/config_generators/src/volttron/haystack/parser/driver/intellimation"
   register: generator_return_db
   failed_when: generator_return_db.rc < 0 or generator_return_db.rc > 1
   when: site_info.data_source == 'db'

@@ -7,27 +7,6 @@
     http_proxy: "{{ http_proxy }}"
     https_proxy: "{{ https_proxy }}"
 
-- name: install rsync
-  become: yes
-  apt:
-    state: present
-    name:
-      - rsync
-
-- name: Clone Config Generators
-  ansible.posix.synchronize:
-    src: config_generators
-    dest: "{{ ansible_env.HOME }}"
-
-- name: Install psycopg2
+- name: Install Config Generators
   ansible.builtin.pip:
-    name: psycopg2-binary==2.9.3
-    executable: "{{ venv_for_ansible }}/bin/pip"
-  environment:
-    http_proxy: "{{ http_proxy }}"
-    https_proxy: "{{ https_proxy }}"
-
-- name: Install Generator Scripts
-  ansible.builtin.shell:
-    cmd: "{{ ansible_python_interpreter }} {{ ansible_env.HOME }}/config_generators/setup.py install"
-    chdir: "{{ ansible_env.HOME }}/config_generators"
+    name: "{{ generator_repository }}"

@@ -1,11 +1,10 @@
 {
   "driver_type": "{{ driver.device.type }}",
   "driver_config": {
-    "point_service": "{{ normal.point_service.address }}:{{ normal.point_service.port }}",
-    "bacnet_service": "{{ normal.bacnet_service.address }}:{{ normal.bacnet_service.port }}",
+    "nfurl": "http://{{ normal.nfurl.address }}:{{ normal.nfurl.port }}",
     "priority": "{{ normal.bacnet_priority }}",
     "topic_name_format": "{{ normal.topic_name_format }}",
-    "query": "{{ normal.query }}"
+    "query": "{{ normal.structured_query }}"
   }
 
   {% if driver.device.interval is defined %}

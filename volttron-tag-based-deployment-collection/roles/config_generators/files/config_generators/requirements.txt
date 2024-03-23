@@ -1,2 +1,0 @@
-# requirement if using postgres database for getting haystack tag information
-psycopg2
