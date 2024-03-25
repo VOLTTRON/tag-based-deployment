@@ -12,7 +12,7 @@
 
 - name: Run Economizer RCx Generator from JSON
   ansible.builtin.shell:
-    cmd: "{{ venv_for_ansible }}/bin/config-gen-json.economizerrcx {{ host_configs_dir }}/economizer_rcx_generator_config.json"
+    cmd: "{{ venv_for_ansible }}/bin/config-gen-json.airsideeconomizer {{ host_configs_dir }}/economizer_rcx_generator_config.json"
 #    chdir: "{{ ansible_env.HOME }}/config_generators/src/volttron/haystack/parser/airside_economizer/"
   register: generator_return_json
   failed_when: generator_return_json.rc < 0 or generator_return_json.rc > 1
@@ -26,7 +26,7 @@
 
 - name: Run Economizer RCx Generator from Database
   ansible.builtin.shell:
-    cmd: "{{ venv_for_ansible }}/bin/config-gen-db.economizerrcx {{ host_configs_dir }}/economizer_rcx_generator_config.json"
+    cmd: "{{ venv_for_ansible }}/bin/config-gen-db.airsideeconomizer {{ host_configs_dir }}/economizer_rcx_generator_config.json"
 #    chdir: "{{ ansible_env.HOME }}/config_generators/src/volttron/haystack/parser/airside_economizer/intellimation"
   register: generator_return_db
   failed_when: generator_return_db.rc < 0 or generator_return_db.rc > 1
