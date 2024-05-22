@@ -17,7 +17,7 @@
       when: make_volttron_service is defined and make_volttron_service | bool
     - volttron.tag_based_deployment.install_normal_framework_driver
 
-- name: Configure and Install Applications
+- name: Configure Drivers and Applications
   hosts: collectors
   roles:
     - volttron.tag_based_deployment.suspend_volttron_and_get_state
