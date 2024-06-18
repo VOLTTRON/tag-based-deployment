@@ -1,0 +1,7 @@
+- name: Dynamically Install Agents
+  hosts: "{{ on_hosts | default('all') }}"
+  roles:
+    - volttron.tag_based_deployment.start_volttron_and_get_state
+    - volttron.deployment.copy_agent_configs
+    - volttron.tag_based_deployment.dynamically_install_agents
+    - volttron.tag_based_deployment.restore_volttron_state

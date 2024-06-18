@@ -1,0 +1,11 @@
+---
+# TODO: Should this have an argument specification file that defines or requires the agents_to_install, instead of a default here?
+- name: Install Application Agents
+  volttron.deployment.volttron_agent:
+    volttron_root: "{{ volttron_root }}"
+    volttron_home: "{{ volttron_home }}"
+    volttron_venv: "{{ volttron_venv }}"
+    agent_vip_id: "{{ item.key }}"
+    agent_spec: "{{ item.value }}"
+    agent_configs_dir: "{{ host_configs_dir }}"
+  loop: "{{ agents_to_install | default({}) | dict2items }}"

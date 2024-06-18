@@ -1,0 +1,19 @@
+{
+    "connection": {
+        "type": "postgresql",
+        "params": {
+            "dbname": "test",
+            "host": "localhost",
+            "password": "password_here",
+            "port": "63636",
+            "user": "postgres"
+        }
+    },
+    "capture_device_data": true,
+    "capture_analysis_data": false,
+    "capture_log_data": false,
+    "capture_record_data": true,
+    # "history_limit_days": 120,
+    "device_data_filter": {
+    }
+}

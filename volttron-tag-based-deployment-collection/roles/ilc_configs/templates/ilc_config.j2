@@ -1,0 +1,40 @@
+{
+    "device_type": {{ ilc_pairwise.device_type | to_json }},
+    "validate_pairwise_criteria":  {{ ilc_pairwise.validate_pairwise_criteria | to_json }},
+
+    # ########### ilc config template ########
+    "ilc_config":{
+        "demand_limit":  {{ ilc.demand_limit | to_json }},
+        "simulation_running": {{ ilc.simulation_running | to_json }},
+        "control_time":  {{ ilc.control_time | to_json }},
+        "control_confirm":  {{ ilc.control_confirm | to_json }},
+        "average_building_power_window":  {{ ilc.average_buidling_power_window | to_json }},
+        "stagger_release":  {{ ilc.stagger_release | to_json }},
+        "stagger_off_time":  {{ ilc.stagger_off_time | to_json }}
+    },
+
+    # ######### control config template ########
+    "control_config":{
+        "device_topic":  {{ ilc_control.device_topic | to_json }},
+        "curtail_settings": {
+            "load": {{ ilc_control.curtail_settings.load | to_json }},
+            "control_method": {{ ilc_control.curtail_settings.control_method | to_json }},
+            "offset": {{ ilc_control.curtail_settings.offset | to_json }},
+            "minimum": {{ ilc_control.curtail_settings.minimum }},
+            "maximum": {{ ilc_control.curtail_settings.maximum | to_json }},
+            "point": {{ ilc_control.curtail_settings.point | to_json }}
+        },
+        "device_status": {
+            "curtail": {
+                "device_status_args": {{ ilc_control.curtail_settings.device_status_args | to_json }},
+                "condition": {{ ilc_control.curtail_settings.condition | to_json }}
+            }
+        }
+    },
+
+    # ############ criteria config template #########
+    "criteria_config":{{ ilc_criteria | tojson }},
+
+    ############## mappers ##########################
+    "mapper_config":{{ ilc_mappers | tojson }}
+}

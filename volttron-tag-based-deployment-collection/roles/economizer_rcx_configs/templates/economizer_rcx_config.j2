@@ -1,0 +1,95 @@
+{
+        "analysis_name": "{{ economizer_rcx.analysis_name }}",
+        "device": {
+
+        },
+        "actuation_mode": "{{ economizer_rcx.actuation_mode }}",
+        "arguments": {
+            "point_mapping": {
+
+            }
+            
+            {% if economizer_rcx.arguments.device_type is defined %}
+            {% endif %}
+            
+            {% if economizer_rcx.arguments.data_window is defined %}
+            , "data_window": {{ economizer_rcx.arguments.data_window }}
+            {% endif %}
+
+            {% if economizer_rcx.arguments.no_required_data is defined %}
+            , "no_required_data": {{ economizer_rcx.arguments.no_required_data }}
+            {% endif %}
+                        
+            {% if economizer_rcx.arguments.open_damper_time is defined %}
+            , "open_damper_time": {{ economizer_rcx.arguments.open_damper_time }}
+            {% endif %}            
+                        
+            {% if economizer_rcx.arguments.low_supply_fan_threshold is defined %}
+            , "low_supply_fan_threshold": {{ economizer_rcx.arguments.low_supply_fan_threshold }}
+            {% endif %}
+                        
+            {% if economizer_rcx.arguments.mat_low_threshold is defined %}
+            , "mat_low_threshold": {{ economizer_rcx.arguments.mat_low_threshold }}
+            {% endif %}
+
+            {% if economizer_rcx.arguments.mat_high_threshold is defined %}
+            , "mat_high_threshold": {{ economizer_rcx.arguments.mat_high_threshold }}
+            {% endif %}
+             
+            {% if economizer_rcx.arguments.oat_low_threshold is defined %}
+            , "oat_low_threshold": {{ economizer_rcx.arguments.oat_low_threshold }}
+            {% endif %}
+                        
+            {% if economizer_rcx.arguments.oat_high_threshold is defined %}
+            , "oat_high_threshold": {{ economizer_rcx.arguments.oat_high_threshold }}
+            {% endif %}
+                        
+            {% if economizer_rcx.arguments.rat_low_threshold is defined %}
+            , "rat_low_threshold": {{ economizer_rcx.arguments.rat_low_threshold }}
+            {% endif %}
+                        
+            {% if economizer_rcx.arguments.rat_high_threshold is defined %}
+            , "rat_high_threshold": {{ economizer_rcx.arguments.rat_high_threshold }}
+            {% endif %}
+                        
+            {% if economizer_rcx.arguments.temp_difference_threshold is defined %}
+            , "temp_difference_threshold": {{ economizer_rcx.arguments.temp_difference_threshold }}
+            {% endif %}
+            
+            {% if economizer_rcx.arguments.open_damper_threshold is defined %}
+            , "open_damper_threshold": {{ economizer_rcx.arguments.open_damper_threshold }}
+            {% endif %} 
+                        
+            {% if economizer_rcx.arguments.oaf_temperature_threshold is defined %}
+            , "oaf_temperature_threshold": {{ economizer_rcx.arguments.oaf_temperature_threshold }}
+            {% endif %}
+                        
+            {% if economizer_rcx.arguments.cooling_enabled_threshold is defined %}
+            , "cooling_enabled_threshold": {{ economizer_rcx.arguments.cooling_enabled_threshold }}
+            {% endif %}
+                        
+            {% if economizer_rcx.arguments.minimum_damper_setpoint is defined %}
+            , "minimum_damper_setpoint": {{ economizer_rcx.arguments.minimum_damper_setpoint }}
+            {% endif %}
+                        
+            {% if economizer_rcx.arguments.desired_oaf is defined %}
+            , "desired_oaf": {{ economizer_rcx.arguments.desired_oaf }}
+            {% endif %}
+                        
+            {% if economizer_rcx.arguments.rated_cfm is defined %}
+            , "rated_cfm": {{ economizer_rcx.arguments.rated_cfm }}
+            {% endif %}
+                        
+            {% if economizer_rcx.arguments.eer is defined %}
+            , "eer": {{ economizer_rcx.arguments.eer }}
+            {% endif %}
+                        
+            {% if economizer_rcx.arguments.economizer_type is defined %}
+            , "economizer_type": "{{ economizer_rcx.arguments.economizer_type }}"
+            {% endif %}
+                        
+            {% if economizer_rcx.arguments.temp_band is defined %}
+            , "temp_band": {{ economizer_rcx.arguments.temp_band }}
+            {% endif %}
+        }
+}

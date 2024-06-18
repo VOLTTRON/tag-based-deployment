@@ -1,0 +1,5 @@
+---
+dependencies:
+    - volttron.deployment.set_defaults
+    - volttron.deployment.ansible_venv
+    - volttron.tag_based_deployment.config_generators

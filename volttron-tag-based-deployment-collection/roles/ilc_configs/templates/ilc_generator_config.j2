@@ -1,0 +1,56 @@
+ {
+"metadata": {
+        {% if site_info.data_source == "json" %}
+            "equip_json": "{{ host_configs_dir }}/generator_json_sources/{{ tag_data.json.equipment_file }}",
+            "points_json": "{{ host_configs_dir }}/generator_json_sources/{{ tag_data.json.points_file }}"
+        {% endif %}
+
+        {% if site_info.data_source == "db" %}
+            "connection_params": {
+                    "dbname": "{{ tag_data.database.name }}",
+                    "host": "{{ tag_data.database.host }}",
+                    "port": {{ tag_data.database.port }},
+                    "user": "{{ tag_data.database.user }}",
+                    "password": "{{ tag_data.database.password }}"
+                },
+            "equip_table": "{{ tag_data.database.equipment_table }}",
+            "point_table": "{{ tag_data.database.point_table }}"
+        {% endif %}
+     }
+
+     {% if site_info.site_id is defined %}
+        ,"site_id": "{{ site_info.site_id }}"
+     {% endif %}
+
+     {% if site_info.campus is defined %}
+        ,"campus": "{{ site_info.campus }}"
+     {% endif %}
+
+     {% if site_info.building is defined %}
+        ,"building": "{{ site_info.building }}"
+     {% endif %}
+
+     # The field that contains the above point metadata
+     ,"point_meta_field": "{{ site_info.point_meta_field }}"
+
+     {% if ilc_generator.building_power_meter is defined %}
+        ,"building_power_meter": "{{ ilc_generator.building_power_meter }}"
+     {% endif %}
+
+     {% if ilc_generator.power_meter_id is defined %}
+        ,"power_meter_id": "{{ ilc_generator.power_meter_id }}"
+     {% endif %}
+
+     ,"point_meta_map": {{ ilc_generator.point_meta_map | to_json }}
+
+     # where generated configs should be saved. Code will try to do makedir -p
+     ,"output_dir":"{{ ilc_generator.output_dir }}"
+
+     # VIP identity to use when installing configurations.
+     {% if ilc_generator.ilc_agent_vip is defined %}
+     ,"ilc_agent_vip":"{{ ilc_generator.ilc_agent_vip }}"
+     {% endif %}
+
+     # Template for ilc configuration
+     , "config_template": {% include 'ilc_config.j2' %}
+}

@@ -1,9 +1,0 @@
----
-- name: Install Config
-  ansible.builtin.shell:
-    cmd: >
-      echo "{{ config_item.value }}" | sed s/\'/\"/g |
-      {{ volttron_venv }}/bin/vctl config store platform.driver {{ config_item.key }} /dev/stdin
-  loop: "{{ item | dict2items }}"
-  loop_control:
-    loop_var: config_item

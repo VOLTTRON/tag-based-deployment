@@ -1,0 +1,16 @@
+[Unit]
+Description=autossh
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+User={{ansible_user}}
+Group={{ansible_user}}
+ExecStart=
+ExecStart=/usr/bin/autossh -M {{historian_tunnel.autossh_monitor_port}} -o "ServerAliveInterval 30" -o "ServerAliveCountMax 3" -o ExitOnForwardFailure=yes -L{{historian_tunnel.local_port}}:{{historian_tunnel.remote_address}}:{{historian_tunnel.remote_port}} {{historian_tunnel.jump_host_user}}@{{historian_tunnel.jump_host_address}} -N -p {{historian_tunnel.jump_host_port}} -i {{historian_tunnel.key_file_remote_path}}
+Restart=on-failure
+RestartSec=30
+
+[Install]
+WantedBy=multi-user.target

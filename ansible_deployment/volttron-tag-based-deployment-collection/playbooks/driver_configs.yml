@@ -1,7 +1,0 @@
----
-- name: configure agents
-  hosts: "{{ on_hosts | default('all') }}"
-  roles:
-    - volttron.deployment.set_defaults
-    - volttron.deployment.ansible_venv
-    - volttron.tag-based-deployment.driver_configs

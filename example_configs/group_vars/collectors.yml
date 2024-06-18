@@ -1,0 +1,200 @@
+---
+agents_to_install:
+  platform.historian:
+    agent_state: present
+    agent_source: '{{ volttron_root }}/services/core/SQLHistorian'
+    agent_running: True
+    agent_enabled: True
+    agent_tag: historian
+    agent_config: '{{ host_configs_dir }}/historian_config.json'
+  platform.listener:
+    agent_state: present
+    agent_source: '{{ volttron_root }}/examples/ListenerAgent'
+    agent_running: False
+    agent_enabled: False
+    agent_tag: listener
+
+tag_data:
+  ### For json data_source (comment if using db):
+  json:
+    source_path: "/path/to/file"
+    equipment_file: "equipment_file.json"
+    points_file: "points_file.json"
+
+  ### For db data_source (comment if using json):
+  database:
+    name: "db_name"
+    host: localhost
+    port: 5432
+    user: "user_name_here"
+    password: "password_here"
+    equipment_table: "public.entity"
+    point_table: "public.gw_entity"
+
+airside_rcx:
+  analysis_name: "AirsideAIRCx"
+  actuation_mode: "passive"
+  arguments:
+    no_required_data: 10
+    sensitivity: custom
+    
+    ### auto_correct_flag can be set to false, "low", "normal", or "high" ###
+    auto_correct_flag: false
+    
+    ### data_window - time duration for data collection prior to analysis_name
+    ### if data_window is ommitted from configuration defaults to run on the hour.
+    data_window: 60
+
+    ### Static Pressure AIRCx Thresholds ###
+    stcpr_stpt_deviation_thr: 20
+    warm_up_time: 5
+    duct_stcpr_retuning: 0.1
+    max_duct_stcpr_stpt: 2.5
+    high_sf_thr: 95.0
+    low_sf_thr: 20.0
+    zn_high_damper_thr: 90.0
+    zn_low_damper_thr: 10.0
+    min_duct_stcpr_stpt: 0.5
+    hdzn_damper_thr: 30.0
+    
+    ### SAT AIRCx Thresholds ###
+    sat_stpt_deviation_thr: 5
+    percent_reheat_thr: 25.0
+    rht_on_thr: 10.0
+    sat_high_damper_thr: 80.0
+    percent_damper_thr: 60.0
+    min_sat_stpt: 50.0
+    sat_retuning: 1.0
+    reheat_valve_thr: 50.0
+    max_sat_stpt: 75.0
+    
+    #### Schedule/Reset AIRCx Thresholds ###
+    unocc_time_thr: 40.0
+    unocc_stcpr_thr: 0.2
+    monday_sch: ["5:30","18:30"]
+    tuesday_sch: ["5:30","18:30"]
+    wednesday_sch: ["5:30","18:30"]
+    thursday_sch: ["5:30","18:30"]
+    friday_sch: ["5:30","18:30"]
+    saturday_sch: ["0:00","0:00"]
+    sunday_sch: ["0:00","0:00"]
+    
+    sat_reset_thr: 5.0
+    stcpr_reset_thr: 0.25
+
+driver:
+  device:
+    type: normalgw
+    interval: 60
+    # heart_beat_point:
+    # group: foo
+
+economizer_rcx:
+  analysis_name: "Economizer_RCx"
+  actuation_mode: "passive"
+  arguments:
+    device_type: "ahu"
+    data_window: 30
+    no_required_data: 10
+    open_damper_time: 0
+    low_supply_fan_threshold: 20.0
+    mat_low_threshold: 50.0
+    mat_high_threshold: 90.0
+    oat_low_threshold: 30.0
+    oat_high_threshold: 100.0
+    rat_low_threshold: 50.0
+    rat_high_threshold: 90.0
+    temp_difference_threshold: 4.0
+    open_damper_threshold: 90.0
+    oaf_temperature_threshold: 4.0
+    cooling_enabled_threshold: 5.0
+    minimum_damper_setpoint: 10.0
+    desired_oaf: 10.0
+    rated_cfm: 1000.0
+    eer: 10.0
+    economizer_type: "DDB"
+    temp_band: 1.0
+
+historian_tunnel:
+  autossh_monitor_port: 20000
+  local_port: 63636
+  remote_address: host_or_ip.example.com
+  remote_port: 5432
+  key_file_local_path: "{{ deployment_platform_config_dir }}/historian_tunnel.pem"
+  key_file_remote_path: "{{ansible_env.HOME}}/.ssh/historian_tunnel.pem"
+  jump_host_user: user_name_here
+  jump_host_address: host_or_ip.example.com
+  jump_host_port: 443
+
+ilc:
+    average_buidling_power_window: 15
+    control_confirm: 5
+    control_time: 20
+    demand_limit: "TRIGGER"
+    simulation_running: false
+    stagger_off_time: false
+    stagger_release: true
+
+ilc_pairwise:
+    device_type: "vav"
+    validate_pairwise_criteria: false
+
+ilc_control:
+    device_topic: ""
+    curtail_settings:
+        load: 0.5
+        control_method: "offset"
+        offset: 2.0
+        minimum: 70.0
+        maximum: 76.0
+        point: "ZoneCoolingTemperatureSetPoint"
+        device_status_args: ["MinimumAirFlow", "ZoneAirFlow", "MaxAirFlow", "OccupancyCommand"]
+        condition: ["(ZoneAirFlowSetPoint>MinimumAirFlow) & (Eq(OccupancyCommand, 0))"]
+
+ilc_criteria:
+    room_type:
+        map_key: "Office"
+        operation_type: "mapper"
+        dict_name: "zone_type"
+    available_zone_airflow_ratio:
+        operation_type: "formula"
+        operation: "(ZoneAirFlow/MinimumAirFlow) - 1"
+        minimum: 0.0
+        maximum: 10.0
+        operation_args: ["MinimumAirFlow", "ZoneAirFlow"]
+    box_size:
+        operation_type: "formula"
+        operation: "MaxAirFlow/10"
+        minimum: 0.0
+        maximum: 100.0
+        operation_args: ["MaxAirFlow"]
+    zonetemperature_setpoint:
+        operation: "1/(ZoneTemperature - ZoneCoolingTemperatureSetPoint)"
+        operation_type: "formula"
+        operation_args:
+            always: ["ZoneTemperature"]
+            nc: ["ZoneCoolingTemperatureSetPoint"]
+            minimum: 0.0
+            maximum: 10.0
+
+ilc_mappers:
+    "zone_type":
+        "Directors office": 1
+        "Office": 3
+        "Empty Office": 7
+        "Conference Room": 1
+        "Mechanical Room": 9
+        "Computer Lab": 2
+        "Kitchen": 6
+        "Mixed": 4
+
+normal:
+  point_service:
+    address: localhost
+    port: 8080
+  bacnet_service:
+    address: localhost
+    port: 8080
+  bacnet_priority: 14
+  query: "@period:[1, +inf] @attr_hpl\:bacnet\:1_device_id:[{device_id},{device_id}]"
+  topic_name_format: "object_name:{prop_object_name}"

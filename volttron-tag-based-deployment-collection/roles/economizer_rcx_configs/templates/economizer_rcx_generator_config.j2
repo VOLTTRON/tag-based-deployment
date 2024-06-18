@@ -1,0 +1,59 @@
+ {
+     "metadata": {
+        {% if site_info.data_source == "json" %}
+            "equip_json": "{{ host_configs_dir }}/generator_json_sources/{{ tag_data.json.equipment_file }}",
+            "points_json": "{{ host_configs_dir }}/generator_json_sources/{{ tag_data.json.points_file }}"
+        {% endif %}
+
+        {% if site_info.data_source == "db" %}
+            "connection_params": {
+                    "dbname": "{{ tag_data.database.name }}",
+                    "host": "{{ tag_data.database.host }}",
+                    "port": {{ tag_data.database.port }},
+                    "user": "{{ tag_data.database.user }}",
+                    "password": "{{ tag_data.database.password }}"
+                },
+            "equip_table": "{{ tag_data.database.equipment_table }}",
+            "point_table": "{{ tag_data.database.point_table }}"
+        {% endif %}
+     }
+
+     {% if site_info.site_id is defined %}
+        ,"site_id": "{{ site_info.site_id }}"
+     {% endif %}
+
+     {% if site_info.campus is defined %}
+        ,"campus": "{{ site_info.campus }}"
+     {% endif %}
+
+     {% if site_info.building is defined %}
+        ,"building": "{{ site_info.building }}"
+     {% endif %}
+
+     # The field that contains the above point metadata
+     ,"point_meta_field": "{{ site_info.point_meta_field }}"
+
+     ,"point_meta_map": {
+            "supply_fan_status": "{{ economizer_rcx_generator.point_meta_map.supply_fan_status }}",
+            "outdoor_air_temperature": "{{ economizer_rcx_generator.point_meta_map.outdoor_air_temperature }}",
+            "return_air_temperature": "{{ economizer_rcx_generator.point_meta_map.return_air_temperature }}",
+            "mixed_air_temperature":"{{ economizer_rcx_generator.point_meta_map.mixed_air_temperature }}",
+            "outdoor_damper_signal": "{{ economizer_rcx_generator.point_meta_map.outdoor_damper_signal }}",
+            "cool_call": [
+                "{{ economizer_rcx_generator.point_meta_map.chilled_water_valve_position }}",
+                "{{ economizer_rcx_generator.point_meta_map.chilled_water_valve_command }}"
+                ],
+            "supply_fan_speed": "{{ economizer_rcx_generator.point_meta_map.supply_fan_speed }}"
+        }
+
+     # where generated configs should be saved. Code will try to do makedir -p
+     ,"output_dir":"{{ economizer_rcx_generator.output_dir }}"
+
+     # Prefix to use when creating VIP identity.
+     {% if economizer_rcx_generator.agent_vip_prefix is defined %}
+     ,"agent_vip_prefix":"{{ economizer_rcx_generator.agent_vip_prefix }}"
+     {% endif %}
+
+     # Template for economizer_rcx configuration
+     ,"config_template": {% include 'economizer_rcx_config.j2' %}
+}

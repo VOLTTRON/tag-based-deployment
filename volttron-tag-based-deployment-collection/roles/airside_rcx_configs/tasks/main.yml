@@ -1,0 +1,80 @@
+---
+- name: Generate Airside RCx Generator Config
+  ansible.builtin.template:
+    src: airside_rcx_generator_config.j2
+    dest: "{{ host_configs_dir }}/airside_rcx_generator_config.json"
+
+- name: Copy JSON Sources
+  ansible.posix.synchronize:
+    src: "{{ airside_rcx_generator.json.source_path }}"
+    dest: "{{ host_configs_dir }}"
+  when: site_info.data_source == 'json'
+
+- name: Run Airside RCx Generator from JSON
+  ansible.builtin.shell:
+    cmd: "{{ venv_for_ansible }}/bin/config-gen-json.airsidercx {{ host_configs_dir }}/airside_rcx_generator_config.json"
+#    chdir: "{{ ansible_env.HOME }}/config_generators/src/volttron/haystack/parser/airsidercx/"
+  register: generator_return_json
+  failed_when: generator_return_json.rc < 0 or generator_return_json.rc > 1
+  when: site_info.data_source == 'json'
+
+- name: Report Generator Errors from JSON
+  ansible.builtin.copy:
+    dest: airside_rcx_issues.json
+    content: "{{ generator_return_json.stderr }}"
+  when: generator_return_json.rc | default('') == 1
+
+- name: Run Airside RCx Generator from Database
+  ansible.builtin.shell:
+    cmd: "{{ venv_for_ansible }}/bin/config-gen-db.airsidercx {{ host_configs_dir }}/airside_rcx_generator_config.json"
+#    chdir: "{{ ansible_env.HOME }}/config_generators/src/volttron/haystack/parser/airsidercx/intellimation"
+  register: generator_return_db
+  failed_when: generator_return_db.rc < 0 or generator_return_db.rc > 1
+  when: site_info.data_source == 'db'
+
+- name: Report Generator Errors from Database
+  ansible.builtin.copy:
+    dest: airside_rcx_issues.json
+    content: "{{ generator_return_db.stderr }}"
+  when: generator_return_db.rc | default('') == 1
+
+- name: Fetch Generator Error Report
+  ansible.builtin.fetch:
+    dest: "{{ generator_reports_dir }}/{{ inventory_hostname }}/airside_rcx_issues.json"
+    src: "{{ host_configs_dir }}/airside_rcx/errors/unmapped_device_details" # airside_rcx_issues.json
+    flat: yes
+  when: (generator_return_json.rc is defined and generator_return_json.rc == 1) or (generator_return_db.rc is defined and generator_return_db.rc == 1)
+
+- name: Find Generated Files
+  ansible.builtin.find:
+    paths: "{{ host_configs_dir }}/airside_rcx/configs"
+    excludes: "unmapped_device_details"
+  register: airside_rcx_configs
+
+- name: Load VOLTTRON Airside RCx Configurations
+  ansible.builtin.slurp:
+    src: "{{ item.path }}"
+  register: airside_rcx_config_set
+  loop: "{{ airside_rcx_configs.files }}"
+
+- name: Install Airside RCx Config
+  ansible.builtin.shell:
+    cmd: "{{ volttron_venv }}/bin/vcfg --vhome {{ volttron_home }} update-config-store --metadata-file configs/airside_rcx"
+
+- name: Setup Agent Installs
+  set_fact:
+    agents_to_install: "{{ 
+    agents_to_install | default({}) | combine({ agent_vip_prefix + '.' + ( item.device.unit | dict2items | map(attribute='key') | first ) : config_dict })
+    }}"
+  loop: "{{ airside_rcx_config_set.results | map(attribute='content') | map('b64decode') | map('from_json') }}"
+  vars:
+    config_dict:
+      agent_source: '{{ ansible_env.HOME }}/volttron-pnnl-applications/EnergyEfficiency/AirsideRCxAgent/'
+      agent_state: 'present'
+      agent_enabled: True
+      agent_priority: 50
+      agent_running: true
+      agent_tag: 'rcx'
+      skip_requirements: False
+      force_install: False
+    agent_vip_prefix: "{{ airside_rcx_generator.agent_vip_prefix | default('airside') }}"

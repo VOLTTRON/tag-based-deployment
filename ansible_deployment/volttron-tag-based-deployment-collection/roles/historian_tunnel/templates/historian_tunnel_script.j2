@@ -1,2 +1,0 @@
-#!/bin/bash
-autossh -M {{historian_tunnel.autossh_monitor_port}} -f -N -L {{historian_tunnel.local_port}}:{{historian_tunnel.remote_address}}:{{historian_tunnel.remote_port}} -i {{historian_tunnel.key_file_remote_path}} {{historian_tunnel.jump_host_user}}@{{historian_tunnel.jump_host_address}} -p {{historian_tunnel.jump_host_port}}

@@ -1,0 +1,12 @@
+---
+- name: Clone VOLTTRON PNNL Applications
+  ansible.builtin.git:
+    repo: https://github.com/volttron/volttron-pnnl-applications
+    dest: volttron-pnnl-applications
+  environment:
+    http_proxy: "{{ http_proxy }}"
+    https_proxy: "{{ https_proxy }}"
+
+- name: Install Config Generators
+  ansible.builtin.pip:
+    name: "{{ generator_repository }}"

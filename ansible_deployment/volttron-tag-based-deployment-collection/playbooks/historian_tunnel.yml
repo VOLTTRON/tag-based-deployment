@@ -1,7 +1,0 @@
----
-- name: Set up Historian Tunnel Service
-  hosts: "{{ on_hosts | default('all') }}"
-  roles:
-    - volttron.deployment.set_defaults
-    - volttron.deployment.ansible_venv
-    - volttron.tag-based-deployment.historian_tunnel

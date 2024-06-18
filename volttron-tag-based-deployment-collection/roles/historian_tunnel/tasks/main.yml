@@ -1,0 +1,30 @@
+---
+- name: Install AutoSSH
+  become: yes
+  ansible.builtin.package:
+    name: autossh
+    state: present
+
+- name: Install SSH Key
+  ansible.builtin.copy:
+    src: "{{ historian_tunnel.key_file_local_path }}"
+    dest: "{{ historian_tunnel.key_file_remote_path }}"
+    mode: '0600'
+
+- name: Create Historian Tunnel Service File
+  become: yes
+  ansible.builtin.template:
+    src: historian_tunnel_service.j2
+    dest: /etc/systemd/system/historian_tunnel.service
+    mode: 0644
+    group: "{{ ansible_user }}"
+    owner: "{{ ansible_user }}"
+
+- name: Start Historian Tunnel Service
+  become: yes
+  ansible.builtin.systemd:
+    name: historian_tunnel
+    daemon_reload: yes
+    enabled: yes
+    state: started
+  when: make_volttron_service is defined and make_volttron_service | bool

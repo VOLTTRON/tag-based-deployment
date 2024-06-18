@@ -1,0 +1,51 @@
+ {
+     "metadata": {
+        {% if site_info.data_source == "json" %}
+            "equip_json": "{{ host_configs_dir }}/generator_json_sources/{{ airside_rcx_generator.json.equipment_file }}",
+            "points_json": "{{ host_configs_dir }}/generator_json_sources/{{ airside_rcx_generator.json.points_file }}"
+        {% endif %}
+
+        {% if site_info.data_source == "db" %}
+            "connection_params": {
+                    "dbname": "{{ tag_data.database.name }}",
+                    "host": "{{ tag_data.database.host }}",
+                    "port": {{ tag_data.database.port }},
+                    "user": "{{ tag_data.database.user }}",
+                    "password": "{{ tag_data.database.password }}"
+                },
+            "equip_table": "{{ tag_data.database.equipment_table }}",
+            "point_table": "{{ tag_data.database.point_table }}"
+        {% endif %}
+     }
+
+     ,"point_meta_map": {{ airside_rcx_generator.point_meta_map | to_json }}
+
+     # The field that contains the above point metadata
+     ,"point_meta_field": "{{ site_info.point_meta_field }}"
+
+     # where generated configs should be saved. Code will try to do makedir -p
+     ,"output_dir":"{{ airside_rcx_generator.output_dir }}"
+
+     # Prefix to use when creating VIP identity.
+     {% if airside_rcx_generator.agent_vip_prefix is defined %}
+     ,"agent_vip_prefix":"{{ airside_rcx_generator.agent_vip_prefix }}"
+     {% endif %}
+
+     # Template for airside_rcx configuration
+     ,"config_template": {% include 'airside_rcx_config.j2' %}
+
+     # If provided query will be filtered using this condition
+     {% if site_info.site_id is defined %}
+        ,"site_id": "{{ site_info.site_id }}"
+     {% endif %}
+
+     # Optional campus. If not provided will be parsed from site_id else will be empty. defaults to empty
+     {% if airside_rcx_generator.campus is defined %}
+        ,"campus": "{{ airside_rcx_generator.campus }}"
+     {% endif %}
+
+     # Optional building or site name. If not provided parsed from site_id if site_id is provided. defaults to empty
+     {% if airside_rcx_generator.building is defined %}
+        ,"building": "{{ airside_rcx_generator.building }}"
+     {% endif %}
+ }

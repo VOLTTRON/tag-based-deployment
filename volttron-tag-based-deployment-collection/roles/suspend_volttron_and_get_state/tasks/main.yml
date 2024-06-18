@@ -1,0 +1,17 @@
+---
+- name: Get VOLTTRON State
+  ansible.builtin.shell:
+    cmd: "{{ volttron_venv }}/bin/vctl status"
+  register: volttron_status_result
+  failed_when: volttron_status_result is not defined or 'rc' not in volttron_status_result
+
+- name: Save VOLTTRON State
+  ansible.builtin.set_fact:
+    volttron_was_running: "{{ volttron_status_result.rc == 0 | bool }}"
+
+- name: Shutdown VOLTTRON if Running
+  ansible.builtin.systemd:
+    name: volttron
+    enabled: yes
+    state: stopped
+  become: yes
