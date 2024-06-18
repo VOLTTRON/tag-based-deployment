@@ -1,0 +1,34 @@
+---
+- name: Get VOLTTRON State
+  ansible.builtin.shell:
+    cmd: "{{ volttron_venv }}/bin/vctl status"
+  register: volttron_status_result
+  failed_when: volttron_status_result is not defined or 'rc' not in volttron_status_result
+
+- name: Save VOLTTRON State
+  ansible.builtin.set_fact:
+    volttron_was_running: "{{ volttron_status_result.rc == 0 | bool }}"
+
+- name: Start VOLTTRON as Service
+  ansible.builtin.systemd:
+    name: volttron
+    daemon_reload: yes
+    enabled: yes
+    state: started
+  when: make_volttron_service is defined and make_volttron_service | bool
+  become: yes
+
+- name: Start VOLTTRON Not as Service
+  volttron.deployment.volttron_platform:
+    volttron_root: "{{volttron_root}}"
+    volttron_home: "{{volttron_home}}"
+    state: running
+  when: make_volttron_service is not defined or not make_volttron_service | bool
+
+- name: Wait for VOLTTRON to start
+  ansible.builtin.shell:
+    cmd: "{{ volttron_venv }}/bin/vctl status"
+  register: volttron_status_result
+  until: volttron_status_result.rc == 0
+  retries: 10
+  delay: 3

@@ -1,0 +1,150 @@
+{
+        "analysis_name": "{{ airside_rcx.analysis_name }}",
+        "device": {
+
+        },
+        "actuation_mode": "{{ airside_rcx.actuation_mode }}",
+        "arguments": {
+            "point_mapping": {
+
+            }
+            {% if airside_rcx.arguments.no_required_data is defined %}
+            , "no_required_data": {{ airside_rcx.arguments.no_required_data }}
+            {% endif %}
+
+            {% if airside_rcx.arguments.sensitivity is defined %}
+            , "sensitivity": "{{ airside_rcx.arguments.sensitivity }}"
+            {% endif %}
+
+            {% if airside_rcx.arguments.auto_correct_flag is defined %}
+            , "auto_correct_flag": {{ airside_rcx.arguments.auto_correct_flag | to_json }}
+            {% endif %}
+
+            {% if airside_rcx.arguments.data_window is defined %}
+            , "data_window": {{ airside_rcx.arguments.data_window }}
+            {% endif %}
+
+            ### Static Pressure AIRCx Thresholds ###
+            {% if airside_rcx.arguments.stcpr_stpt_deviation_thr is defined %}
+            , "stcpr_stpt_deviation_thr": {{ airside_rcx.arguments.stcpr_stpt_deviation_thr }}
+            {% endif %}
+
+            {% if airside_rcx.arguments.warm_up_time is defined %}
+            , "warm_up_time": {{ airside_rcx.arguments.warm_up_time }}
+            {% endif %}
+
+            {% if airside_rcx.arguments.duct_stcpr_retuning is defined %}
+            , "duct_stcpr_retuning": {{ airside_rcx.arguments.duct_stcpr_retuning }}
+            {% endif %}
+
+            {% if airside_rcx.arguments.max_duct_stcpr_stpt is defined %}
+            , "max_duct_stcpr_stpt": {{ airside_rcx.arguments.max_duct_stcpr_stpt }}
+            {% endif %}
+
+            {% if airside_rcx.arguments.high_sf_thr is defined %}
+            , "high_sf_thr": {{ airside_rcx.arguments.high_sf_thr }}
+            {% endif %}
+
+            {% if airside_rcx.arguments.low_sf_thr is defined %}
+            , "low_sf_thr": {{ airside_rcx.arguments.low_sf_thr }}
+            {% endif %}
+
+            {% if airside_rcx.arguments.zn_high_damper_thr is defined %}
+            , "zn_high_damper_thr": {{ airside_rcx.arguments.zn_high_damper_thr }}
+            {% endif %}
+
+            {% if airside_rcx.arguments.zn_low_damper_thr is defined %}
+            , "zn_low_damper_thr": {{ airside_rcx.arguments.zn_low_damper_thr }}
+            {% endif %}
+
+            {% if airside_rcx.arguments.min_duct_stcpr_stpt is defined %}
+            , "min_duct_stcpr_stpt": {{ airside_rcx.arguments.min_duct_stcpr_stpt }}
+            {% endif %}
+
+            {% if airside_rcx.arguments.hdzn_damper_thr is defined %}
+            , "hdzn_damper_thr": {{ airside_rcx.arguments.hdzn_damper_thr }}
+            {% endif %}
+
+            ### SAT AIRCx Thresholds ###
+            {% if airside_rcx.arguments.sat_stpt_deviation_thr is defined %}
+            , "sat_stpt_deviation_thr": {{ airside_rcx.arguments.sat_stpt_deviation_thr }}
+            {% endif %}
+
+            {% if airside_rcx.arguments.percent_reheat_thr is defined %}
+            , "percent_reheat_thr": {{ airside_rcx.arguments.percent_reheat_thr }}
+            {% endif %}
+
+            {% if airside_rcx.arguments.rht_on_thr is defined %}
+            , "rht_on_thr": {{ airside_rcx.arguments.rht_on_thr }}
+            {% endif %}
+
+            {% if airside_rcx.arguments.sat_high_damper_thr is defined %}
+            , "sat_high_damper_thr": {{ airside_rcx.arguments.sat_high_damper_thr }}
+            {% endif %}
+
+            {% if airside_rcx.arguments.percent_damper_thr is defined %}
+            , "percent_damper_thr": {{ airside_rcx.arguments.percent_damper_thr }}
+            {% endif %}
+
+            {% if airside_rcx.arguments.min_sat_stpt is defined %}
+            , "min_sat_stpt": {{ airside_rcx.arguments.min_sat_stpt }}
+            {% endif %}
+
+            {% if airside_rcx.arguments.sat_retuning is defined %}
+            , "sat_retuning": {{ airside_rcx.arguments.sat_retuning }}
+            {% endif %}
+
+            {% if airside_rcx.arguments.reheat_valve_thr is defined %}
+            , "reheat_valve_thr": {{ airside_rcx.arguments.reheat_valve_thr }}
+            {% endif %}
+
+            {% if airside_rcx.arguments.max_sat_stpt is defined %}
+            , "max_sat_stpt": {{ airside_rcx.arguments.max_sat_stpt }}
+            {% endif %}
+
+            #### Schedule/Reset AIRCx Thresholds ###
+            {% if airside_rcx.arguments.unocc_time_thr is defined %}
+            , "unocc_time_thr": {{ airside_rcx.arguments.unocc_time_thr }}
+            {% endif %}
+
+            {% if airside_rcx.arguments.unocc_stcpr_thr is defined %}
+            , "unocc_stcpr_thr": {{ airside_rcx.arguments.unocc_stcpr_thr }}
+            {% endif %}
+
+            {% if airside_rcx.arguments.monday_sch is defined %}
+            , "monday_sch": {{ airside_rcx.arguments.monday_sch | to_json }}
+            {% endif %}
+
+            {% if airside_rcx.arguments.tuesday_sch is defined %}
+            , "tuesday_sch": {{ airside_rcx.arguments.tuesday_sch | to_json }}
+            {% endif %}
+
+            {% if airside_rcx.arguments.wednesday_sch is defined %}
+            , "wednesday_sch": {{ airside_rcx.arguments.wednesday_sch | to_json }}
+            {% endif %}
+
+            {% if airside_rcx.arguments.thursday_sch is defined %}
+            , "thursday_sch": {{ airside_rcx.arguments.thursday_sch | to_json }}
+            {% endif %}
+
+            {% if airside_rcx.arguments.friday_sch is defined %}
+            , "friday_sch": {{ airside_rcx.arguments.friday_sch | to_json }}
+            {% endif %}
+
+            {% if airside_rcx.arguments.saturday_sch is defined %}
+            , "saturday_sch": {{ airside_rcx.arguments.saturday_sch | to_json }}
+            {% endif %}
+
+            {% if airside_rcx.arguments.sunday_sch is defined %}
+            , "sunday_sch": {{ airside_rcx.arguments.sunday_sch | to_json }}
+            {% endif %}
+
+            {% if airside_rcx.arguments.sat_reset_thr is defined %}
+            , "sat_reset_thr": {{ airside_rcx.arguments.sat_reset_thr }}
+            {% endif %}
+
+            {% if airside_rcx.arguments.stcpr_reset_thr is defined %}
+            , "stcpr_reset_thr": {{ airside_rcx.arguments.stcpr_reset_thr }}
+            {% endif %}
+        }
+    }

@@ -1,0 +1,51 @@
+---
+site_info:
+  data_source: db
+  site_id: "site_id_here"
+  "point_meta_field": "dis"
+
+config: {}
+
+driver_generator:
+  # driver_vip: "platform.driver"
+  output_dir: "{{ host_configs_dir }}/drivers"
+
+airside_rcx_generator:
+  output_dir: "{{ host_configs_dir }}/airside_rcx"
+#  agent_vip_prefix: "airsidercx"
+  "point_meta_map":
+    "fan_status": "s:SaFanCmd"
+    "zone_reheat": "s:RhtVlvCmd"
+    "zone_damper": "s:vavDmpPos"
+    "duct_stcpr": "s:SaPress"
+    "duct_stcpr_stpt": "s:SaPressSp"
+    "sa_temp": "s:SaTemp"
+    "fan_speedcmd": "s:SaFanSpdCmd"
+    "sat_stpt": "s:SaTempSp"
+
+economizer_rcx_generator:
+  point_meta_map:
+    supply_fan_status: "s:SaFanCmd"
+    outdoor_air_temperature: "s:OaTemp"
+    return_air_temperature: "s:RaTemp"
+    mixed_air_temperature: "s:MaTemp"
+    outdoor_damper_signal: "s:OaDmprCmd"
+    chilled_water_valve_position: "s:ChwVlvPos"
+    chilled_water_valve_command: "s:ChwVlvCmd"
+    supply_fan_speed: "s:SaFanSpdCmd"
+  output_dir: "{{ host_configs_dir }}/economizer_rcx"
+
+ilc_generator:
+    # building_power_meter: ""
+    ilc_agent_vip: "agent.ilc"
+    output_dir: "{{ host_configs_dir }}/ilc"
+    # power_meter_id: ""
+    point_meta_map:
+        whole_building_power: "s:Mtr_kW"
+        zone_cooling_temperature_setpoint: "s:EffZnTempSp"
+        minimum_air_flow: "s:MinAirFlowSp"
+        # zone_air_flow_setpoint: "s:SaFlow"
+        zone_air_flow: "s:SaFlow"
+        max_air_flow: "s:MaxAirFlowSP"
+        zone_temperature: "s:ZNTemp"
+        occupancy_command: "s:Occ"

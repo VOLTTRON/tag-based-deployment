@@ -1,0 +1,8 @@
+---
+- name: configure agents
+  hosts: "{{ on_hosts | default('all') }}"
+  roles:
+    - volttron.tag_based_deployment.config_generators
+    - volttron.tag_based_deployment.suspend_volttron_and_get_state
+    - volttron.tag_based_deployment.airside_rcx_configs
+    - volttron.tag_based_deployment.restore_volttron_state

@@ -1,0 +1,4 @@
+---
+    dependencies:
+    - volttron.deployment.set_defaults
+    - volttron.deployment.ansible_venv

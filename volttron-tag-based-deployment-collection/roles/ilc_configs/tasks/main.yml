@@ -1,0 +1,75 @@
+---
+- name: Generate ILC Generator Config
+  ansible.builtin.template:
+    src: ilc_generator_config.j2
+    dest: "{{ host_configs_dir }}/ilc_generator_config.json"
+
+- name: Copy JSON Sources
+  ansible.posix.synchronize:
+    src: "{{ ilc_generator.json.source_path }}"
+    dest: "{{ host_configs_dir }}"
+  when: site_info.data_source == 'json'
+
+- name: Run ILC Generator from JSON
+  ansible.builtin.shell:
+    cmd: "{{ venv_for_ansible }}/bin/config-gen-json.ilc {{ host_configs_dir }}/ilc_generator_config.json"
+  register: generator_return_json
+  failed_when: generator_return_json.rc < 0 or generator_return_json.rc > 1
+  when: site_info.data_source == 'json'
+
+- name: Report Generator Errors from JSON
+  ansible.builtin.copy:
+    dest: ilc_issues.json
+    content: "{{ generator_return_json.stderr }}"
+  when: generator_return_json.rc | default('') == 1
+
+- name: Run ILC Generator from Database
+  ansible.builtin.shell:
+    cmd: "{{ venv_for_ansible }}/bin/config-gen-db.ilc {{ host_configs_dir }}/ilc_generator_config.json"
+  register: generator_return_db
+  failed_when: generator_return_db.rc < 0 or generator_return_db.rc > 1
+  when: site_info.data_source == 'db'
+
+- name: Report Generator Errors from Database
+  ansible.builtin.copy:
+    dest: ilc_issues.json
+    content: "{{ generator_return_db.stderr }}"
+  when: generator_return_db.rc | default('') == 1
+
+- name: Fetch Generator Error Report
+  ansible.builtin.fetch:
+    dest: "{{ generator_reports_dir }}/{{ inventory_hostname }}/ilc_issues.json"
+    src: "{{ host_configs_dir }}/ilc/errors/unmapped_device_details" # ilc_issues.json
+    flat: yes
+  when: (generator_return_json.rc is defined and generator_return_json.rc == 1) or (generator_return_db.rc is defined and generator_return_db.rc == 1)
+
+- name: Install ILC Configs
+  ansible.builtin.shell:
+    cmd: "{{ volttron_venv }}/bin/vcfg --vhome {{ volttron_home }} update-config-store --metadata-file configs/ilc"
+
+- name: Install ILC Dependencies
+  ansible.builtin.pip:
+    name:
+      - sympy
+      - transitions
+    executable: "{{ volttron_venv }}/bin/pip"
+  environment:
+    http_proxy: "{{ http_proxy }}"
+    https_proxy: "{{ https_proxy }}"
+
+- name: Setup Agent Install
+  set_fact:
+    agents_to_install: "{{ 
+    agents_to_install | default({}) | combine({ agent_vip : config_dict })
+    }}"
+  vars:
+    config_dict:
+      agent_source: "{{ ansible_env.HOME }}/volttron-pnnl-applications/GridServices/Control/ILCAgent"
+      agent_state: 'present'
+      agent_enabled: True
+      agent_priority: 50
+      agent_running: True
+      agent_tag: ilc
+      skip_requirements: False
+      force_install: False
+    agent_vip: "{{ driver_generator.ilc_agent_vip | default('agent.ilc') }}"

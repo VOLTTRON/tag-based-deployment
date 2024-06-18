@@ -1,0 +1,15 @@
+---
+- name: Clone Normal Framework
+  ansible.builtin.git:
+    repo: https://github.com/normalframework/volttron-interface
+    dest: volttron-interface
+  environment:
+    http_proxy: "{{ http_proxy }}"
+    https_proxy: "{{ https_proxy }}"
+
+
+- name: Install Normal Interface
+  ansible.builtin.copy:
+    remote_src: yes
+    src: "{{ansible_env.HOME}}/volttron-interface/normalgw.py"
+    dest: "{{ansible_env.HOME}}/volttron/services/core/PlatformDriverAgent/platform_driver/interfaces/normalgw.py"

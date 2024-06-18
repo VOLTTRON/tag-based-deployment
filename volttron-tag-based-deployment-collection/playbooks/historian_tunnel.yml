@@ -1,0 +1,5 @@
+---
+- name: Set up Historian Tunnel Service
+  hosts: "{{ on_hosts | default('all') }}"
+  roles:
+    - volttron.tag_based_deployment.historian_tunnel

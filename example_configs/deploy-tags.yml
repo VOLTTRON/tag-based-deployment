@@ -1,0 +1,46 @@
+---
+- name: Setup Ansible Environment
+  hosts: collectors
+  roles:
+    - volttron.deployment.set_defaults
+    - volttron.deployment.ansible_venv
+
+- name: Setup Host and Platform
+  hosts: collectors
+  roles:
+    - volttron.deployment.system_dependencies
+    - volttron.deployment.get_volttron_source
+    - volttron.deployment.install_platform
+    - role: volttron.deployment.setup_logging
+      when: use_rotating_log
+    - role: volttron.deployment.make_service
+      when: make_volttron_service is defined and make_volttron_service | bool
+    - volttron.tag_based_deployment.install_normal_framework_driver
+
+- name: Configure and Install Applications
+  hosts: collectors
+  roles:
+    - volttron.tag_based_deployment.suspend_volttron_and_get_state
+    - volttron.tag_based_deployment.config_generators
+    - role: volttron.tag_based_deployment.driver_configs
+      when: driver_generator is defined
+    - role: volttron.tag_based_deployment.airside_rcx_configs
+      when: airside_rcx_generator is defined
+    - role: volttron.tag_based_deployment.economizer_rcx_configs
+      when: economizer_rcx_generator is defined
+    - role: volttron.tag_based_deployment.ilc_configs
+      when: ilc_generator is defined
+    - volttron.tag_based_deployment.restore_volttron_state
+
+- name: Setup Historian Tunnel
+  hosts: collectors
+  roles:
+    - volttron.tag_based_deployment.historian_tunnel
+
+- name: Start VOLTTRON and Install Agents
+  hosts: collectors
+  roles:
+    - volttron.deployment.copy_agent_configs
+    - volttron.tag_based_deployment.start_volttron_and_get_state
+    - volttron.tag_based_deployment.dynamically_install_agents
+

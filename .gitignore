@@ -1,0 +1,13 @@
+/.idea/
+/.venv/
+/build/
+/dist/
+/config_generators/src/intellimation_tcf.egg-info/
+volttron-tag-based-deployment-collection/roles/config_generators/files/config_generators/json/*
+__pycache__
+*.pyc
+agent_configs/*
+group_vars/*
+host_vars/*
+intellimation_hosts.yml
+foo.yml
