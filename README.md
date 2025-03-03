@@ -11,7 +11,7 @@ This directory contains a set of Ansible scripts for deploying VOLTTRON instance
 A playbook (deploy-tags.yml) is provided which will do the following for each managed node:
 1. Install dependencies for VOLTTRON.
 2. Download the repositories for VOLTTRON, the volttron-interface for the Normal Framework,
-and voltron-pnnl-applications.
+and PNNL VOLTTRON applications.
 3. Clone the config generators from this repository to the managed node.
 4. Install and bootstrap VOLTTRON.
 5. Install dependencies for the config generators.

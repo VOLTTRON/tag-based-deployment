@@ -9,9 +9,18 @@
   ansible.builtin.set_fact:
     volttron_was_running: "{{ volttron_status_result.rc == 0 | bool }}"
 
-- name: Shutdown VOLTTRON if Running
+- name: Shutdown VOLTTRON Service if Running
   ansible.builtin.systemd:
     name: volttron
     enabled: yes
     state: stopped
+  when: make_volttron_service is defined and make_volttron_service | bool
   become: yes
+
+- name: Shutdown VOLTTRON Not as Run as a Service
+  volttron.deployment.volttron_platform:
+    volttron_root: "{{volttron_root}}"
+    volttron_home: "{{volttron_home}}"
+    state: stopped
+  when: make_volttron_service is not defined or not make_volttron_service | bool
+

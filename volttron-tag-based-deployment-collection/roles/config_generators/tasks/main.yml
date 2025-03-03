@@ -1,12 +1,15 @@
 ---
-- name: Clone VOLTTRON PNNL Applications
-  ansible.builtin.git:
-    repo: https://github.com/volttron/volttron-pnnl-applications
-    dest: volttron-pnnl-applications
-  environment:
-    http_proxy: "{{ http_proxy }}"
-    https_proxy: "{{ https_proxy }}"
-
 - name: Install Config Generators
   ansible.builtin.pip:
     name: "{{ generator_repository }}"
+
+- name: Install Neo4j
+  ansible.builtin.pip:
+    name: neo4j
+  when: semantic_data.data_store_type == 'neo4j'
+
+- name: Copy File Sources
+  ansible.posix.synchronize:
+    src: "{{ semantic_data.file.source_path }}"
+    dest: "{{ host_configs_dir }}"
+  when: semantic_data.data_store_type == 'file'

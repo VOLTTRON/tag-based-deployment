@@ -1,20 +1,22 @@
  {
      "metadata": {
-        {% if site_info.data_source == "json" %}
-            "equip_json": "{{ host_configs_dir }}/generator_json_sources/{{ airside_rcx_generator.json.equipment_file }}",
-            "points_json": "{{ host_configs_dir }}/generator_json_sources/{{ airside_rcx_generator.json.points_file }}"
+        {% if semantic_data.data_store_type == "file" and semantic_data.model_name == "haystack3_intellimation" %}
+            "equip_json": "{{ host_configs_dir }}/generator_file_sources/{{ semantic_data.file.equipment_file }}",
+            "points_json": "{{ host_configs_dir }}/generator_file_sources/{{ semantic_data.file.points_file }}"
         {% endif %}
-
-        {% if site_info.data_source == "db" %}
+        {% if semantic_data.data_store_type == "file" and semantic_data.model_name == "edo" %}
+            "points_csv": "{{ host_configs_dir }}/generator_file_sources/{{ semantic_data.file.points_file }}"
+        {% endif %}
+        {% if semantic_data.data_store_type == "db" %}
             "connection_params": {
-                    "dbname": "{{ tag_data.database.name }}",
-                    "host": "{{ tag_data.database.host }}",
-                    "port": {{ tag_data.database.port }},
-                    "user": "{{ tag_data.database.user }}",
-                    "password": "{{ tag_data.database.password }}"
+                    "dbname": "{{ semantic_data.database.name }}",
+                    "host": "{{ semantic_data.database.host }}",
+                    "port": {{ semantic_data.database.port }},
+                    "user": "{{ semantic_data.database.user }}",
+                    "password": "{{ semantic_data.database.password }}"
                 },
-            "equip_table": "{{ tag_data.database.equipment_table }}",
-            "point_table": "{{ tag_data.database.point_table }}"
+            "equip_table": "{{ semantic_data.database.equipment_table }}",
+            "point_table": "{{ semantic_data.database.point_table }}"
         {% endif %}
      }
 
@@ -40,12 +42,12 @@
      {% endif %}
 
      # Optional campus. If not provided will be parsed from site_id else will be empty. defaults to empty
-     {% if airside_rcx_generator.campus is defined %}
-        ,"campus": "{{ airside_rcx_generator.campus }}"
+     {% if site_info.campus is defined %}
+        ,"campus": "{{ site_info.campus }}"
      {% endif %}
 
      # Optional building or site name. If not provided parsed from site_id if site_id is provided. defaults to empty
-     {% if airside_rcx_generator.building is defined %}
-        ,"building": "{{ airside_rcx_generator.building }}"
+     {% if site_info.building is defined %}
+        ,"building": "{{ site_info.building }}"
      {% endif %}
  }
