@@ -4,44 +4,25 @@
     src: ilc_generator_config.j2
     dest: "{{ host_configs_dir }}/ilc_generator_config.json"
 
-- name: Copy JSON Sources
-  ansible.posix.synchronize:
-    src: "{{ ilc_generator.json.source_path }}"
-    dest: "{{ host_configs_dir }}"
-  when: site_info.data_source == 'json'
-
-- name: Run ILC Generator from JSON
+- name: Run ILC Generator
   ansible.builtin.shell:
-    cmd: "{{ venv_for_ansible }}/bin/config-gen-json.ilc {{ host_configs_dir }}/ilc_generator_config.json"
-  register: generator_return_json
-  failed_when: generator_return_json.rc < 0 or generator_return_json.rc > 1
-  when: site_info.data_source == 'json'
+    cmd: "{{ venv_for_ansible }}/bin/volttron-config-gen {{ semantic_data.model_name }}
+            {{ semantic_data.data_store_type }} ilc {{ host_configs_dir }}/ilc_generator_config.json"
+  register: generator_return
+  failed_when: generator_return.rc < 0 or generator_return.rc > 1
 
-- name: Report Generator Errors from JSON
+- name: Report Generator Errors
   ansible.builtin.copy:
     dest: ilc_issues.json
-    content: "{{ generator_return_json.stderr }}"
-  when: generator_return_json.rc | default('') == 1
-
-- name: Run ILC Generator from Database
-  ansible.builtin.shell:
-    cmd: "{{ venv_for_ansible }}/bin/config-gen-db.ilc {{ host_configs_dir }}/ilc_generator_config.json"
-  register: generator_return_db
-  failed_when: generator_return_db.rc < 0 or generator_return_db.rc > 1
-  when: site_info.data_source == 'db'
-
-- name: Report Generator Errors from Database
-  ansible.builtin.copy:
-    dest: ilc_issues.json
-    content: "{{ generator_return_db.stderr }}"
-  when: generator_return_db.rc | default('') == 1
+    content: "{{ generator_return.stderr }}"
+  when: generator_return.rc | default('') == 1
 
 - name: Fetch Generator Error Report
   ansible.builtin.fetch:
     dest: "{{ generator_reports_dir }}/{{ inventory_hostname }}/ilc_issues.json"
     src: "{{ host_configs_dir }}/ilc/errors/unmapped_device_details" # ilc_issues.json
     flat: yes
-  when: (generator_return_json.rc is defined and generator_return_json.rc == 1) or (generator_return_db.rc is defined and generator_return_db.rc == 1)
+  when: (generator_return.rc is defined and generator_return.rc == 1)
 
 - name: Install ILC Configs
   ansible.builtin.shell:
@@ -57,6 +38,25 @@
     http_proxy: "{{ http_proxy }}"
     https_proxy: "{{ https_proxy }}"
 
+- name: Clone ILC
+  ansible.builtin.git:
+    repo: "{{ ilc_repo_url }}"
+    version: "{{ ilc_git_branch }}"
+    dest: volttron-ilc
+  environment:
+    http_proxy: "{{ http_proxy }}"
+    https_proxy: "{{ https_proxy }}"
+
+- name: Clone Lighting Actuator
+  ansible.builtin.git:
+    repo: https://github.com/rlutes/volttron-lighting-actuator
+    version: main
+    dest: volttron-lighting-actuator
+  environment:
+    http_proxy: "{{ http_proxy }}"
+    https_proxy: "{{ https_proxy }}"
+  when: volttron_lighting_actuator_repo is defined
+
 - name: Setup Agent Install
   set_fact:
     agents_to_install: "{{ 
@@ -64,7 +64,7 @@
     }}"
   vars:
     config_dict:
-      agent_source: "{{ ansible_env.HOME }}/volttron-pnnl-applications/GridServices/Control/ILCAgent"
+      agent_source: "{{ ansible_env.HOME }}/volttron-ilc"
       agent_state: 'present'
       agent_enabled: True
       agent_priority: 50

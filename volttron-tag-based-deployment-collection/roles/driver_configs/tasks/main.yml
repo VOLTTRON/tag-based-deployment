@@ -4,51 +4,30 @@
     src: driver_generator_config.j2
     dest: "{{ host_configs_dir }}/driver_generator_config.json"
 
-- name: Copy JSON Sources
-  ansible.posix.synchronize:
-    src: "{{ driver_generator.json.source_path }}"
-    dest: "{{ host_configs_dir }}"
-  when: site_info.data_source == 'json'
-
-- name: Run Driver Generator from JSON
+- name: Run Driver Generator
   ansible.builtin.shell:
-    cmd: "{{ venv_for_ansible }}/bin/config-gen-json.driver {{ host_configs_dir }}/driver_generator_config.json"
-    #chdir: "{{ ansible_env.HOME }}/config_generators/src/volttron/haystack/parser/driver/"
-  register: generator_return_json
-  failed_when: generator_return_json.rc < 0 or generator_return_json.rc > 1
-  when: site_info.data_source == 'json'
+    cmd: "{{ venv_for_ansible }}/bin/volttron-config-gen {{ semantic_data.model_name }}
+            {{ semantic_data.data_store_type }} driver {{ host_configs_dir }}/driver_generator_config.json"
+  register: generator_return
+  failed_when: generator_return.rc < 0 or generator_return.rc > 1
 
-- name: Report Generator Errors from JSON
+- name: Report Generator Errors
   ansible.builtin.copy:
     dest: driver_issues.json
-    content: "{{ generator_return_json.stderr }}"
-  when: generator_return_json.rc  | default('') == 1
-
-- name: Run Driver Generator from Database
-  ansible.builtin.shell:
-    cmd: "{{ venv_for_ansible }}/bin/config-gen-db.driver {{ host_configs_dir }}/driver_generator_config.json"
-    #chdir: "{{ ansible_env.HOME }}/config_generators/src/volttron/haystack/parser/driver/intellimation"
-  register: generator_return_db
-  failed_when: generator_return_db.rc < 0 or generator_return_db.rc > 1
-  when: site_info.data_source == 'db'
-
-- name: Report Generator Errors from Database
-  ansible.builtin.copy:
-    dest: driver_issues.json
-    content: "{{ generator_return_db.stderr }}"
-  when: generator_return_db.rc | default('') == 1
+    content: "{{ generator_return.stderr }}"
+  when: generator_return.rc  | default('') == 1
 
 - name: Fetch Generator Error Report
   ansible.builtin.fetch:
     dest: "{{ generator_reports_dir }}/{{ inventory_hostname }}/driver_issues.json"
-    src: "{{ host_configs_dir }}/drivers/unmapped_device_details" # driver_issues.json
+    src: "{{ host_configs_dir }}/drivers/errors/unmapped_device_details" # driver_issues.json
     flat: yes
-  when: (generator_return_json.rc is defined and generator_return_json.rc == 1) or (generator_return_db is defined and generator_return_db == 1)
+  when: (generator_return.rc is defined and generator_return.rc == 1)
 
 - name: Find Generated Files
   ansible.builtin.find:
     paths: "{{ host_configs_dir }}/drivers/configs"
-    excludes: "unmapped_device_details"
+    excludes: ["unmapped_device_details", "*.csv"]
   register: driver_configs
 
 - name: Install Config Set
@@ -56,7 +35,7 @@
     cmd: "{{ volttron_venv }}/bin/vcfg --vhome {{ volttron_home }} update-config-store --metadata-file {{ item.path }}"
   loop: "{{ driver_configs.files }}"
 
-- name: Setup Agent Install
+- name: Setup Driver Agent Install
   set_fact:
     agents_to_install: "{{ 
     agents_to_install | default({}) | combine({ agent_vip : config_dict })
@@ -72,3 +51,29 @@
       skip_requirements: False
       force_install: False
     agent_vip: "{{ driver_generator.driver_vip | default('platform.driver') }}"
+
+
+- name: Generate BACnet Proxy Agent Config
+  ansible.builtin.template:
+    src: bacnet_proxy_config.j2
+    dest: "{{ host_configs_dir }}/bacnet_proxy.json"
+  when: driver.device.type == "bacnet"
+
+- name: Setup BACnet Proxy Agent Install
+  set_fact:
+    agents_to_install: "{{ 
+    agents_to_install | default({}) | combine({ agent_vip : config_dict })
+    }}"
+  vars:
+    config_dict:
+      agent_source: '{{ ansible_env.HOME }}/volttron/services/core/BACnetProxy'
+      agent_state: 'present'
+      agent_enabled: True
+      agent_priority: 50
+      agent_running: true
+      agent_tag: 'proxy'
+      skip_requirements: False
+      force_install: False
+      agent_config: "{{ host_configs_dir }}/bacnet_proxy.json"
+    agent_vip: "{{ driver_generator.bacnet_proxy_vip | default('platform.bacnet_proxy') }}"
+  when: driver.device.type == "bacnet"

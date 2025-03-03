@@ -1,20 +1,29 @@
  {
-"metadata": {
-        {% if site_info.data_source == "json" %}
-            "equip_json": "{{ host_configs_dir }}/generator_json_sources/{{ tag_data.json.equipment_file }}",
-            "points_json": "{{ host_configs_dir }}/generator_json_sources/{{ tag_data.json.points_file }}"
+     "metadata": {
+        {% if semantic_data.data_store_type == "file" and semantic_data.model_name == "haystack3_intellimation" %}
+            "equip_json": "{{ host_configs_dir }}/generator_file_sources/{{ semantic_data.file.equipment_file }}",
+            "points_json": "{{ host_configs_dir }}/generator_file_sources/{{ semantic_data.file.points_file }}"
         {% endif %}
-
-        {% if site_info.data_source == "db" %}
+        {% if semantic_data.data_store_type == "file" and semantic_data.model_name == "edo" %}
+            "points_csv": "{{ host_configs_dir }}/generator_file_sources/{{ semantic_data.file.points_file }}"
+        {% endif %}
+        {% if semantic_data.data_store_type == "db" %}
             "connection_params": {
-                    "dbname": "{{ tag_data.database.name }}",
-                    "host": "{{ tag_data.database.host }}",
-                    "port": {{ tag_data.database.port }},
-                    "user": "{{ tag_data.database.user }}",
-                    "password": "{{ tag_data.database.password }}"
+                    "dbname": "{{ semantic_data.database.name }}",
+                    "host": "{{ semantic_data.database.host }}",
+                    "port": {{ semantic_data.database.port }},
+                    "user": "{{ semantic_data.database.user }}",
+                    "password": "{{ semantic_data.database.password }}"
                 },
-            "equip_table": "{{ tag_data.database.equipment_table }}",
-            "point_table": "{{ tag_data.database.point_table }}"
+            "equip_table": "{{ semantic_data.database.equipment_table }}",
+            "point_table": "{{ semantic_data.database.point_table }}"
+        {% endif %}
+        {% if semantic_data.data_store_type == "neo4j" %}
+            "connection_params": {
+                "uri": "{{ semantic_data.neo4j.uri }}",
+                "user": "{{ semantic_data.neo4j.user }}",
+                "password": "{{ semantic_data.neo4j.password }}"
+            }
         {% endif %}
      }
 
@@ -35,6 +44,10 @@
 
      {% if ilc_generator.building_power_meter is defined %}
         ,"building_power_meter": "{{ ilc_generator.building_power_meter }}"
+     {% endif %}
+
+     {% if ilc_generator.building_power_point is defined %}
+        ,"building_power_point": "{{ ilc_generator.building_power_point }}"
      {% endif %}
 
      {% if ilc_generator.power_meter_id is defined %}

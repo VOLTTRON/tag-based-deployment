@@ -1,11 +1,17 @@
 {
   "driver_type": "{{ driver.device.type }}",
   "driver_config": {
+    {% if driver.device.type == "normal" %}
     "nfurl": "http://{{ normal.nfurl.address }}:{{ normal.nfurl.port }}",
     "priority": "{{ normal.bacnet_priority }}",
     "topic_name_format": "{{ normal.topic_name_format }}",
-    "query": "{{ normal.structured_query }}"
+    "structured_query": {{ normal.structured_query | tojson }}
+    {% endif %}
   }
+  {% if driver.device.type != "normal" %}
+  ,"registry_config":"config://"
+  {% endif %}
+
 
   {% if driver.device.interval is defined %}
   ,"interval": "{{ driver.device.interval }}"

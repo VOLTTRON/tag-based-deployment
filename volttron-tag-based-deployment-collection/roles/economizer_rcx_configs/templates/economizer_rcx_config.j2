@@ -10,6 +10,7 @@
             }
             
             {% if economizer_rcx.arguments.device_type is defined %}
+            , "device_type": "{{ economizer_rcx.arguments.device_type }}"
             {% endif %}
             
             {% if economizer_rcx.arguments.data_window is defined %}

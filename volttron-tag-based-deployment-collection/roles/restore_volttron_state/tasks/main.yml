@@ -24,7 +24,7 @@
   retries: 10
   delay: 3
 
-- name: Shutdown VOLTTRON as Service
+- name: Shutdown VOLTTRON Service
   ansible.builtin.systemd:
     name: volttron
     enabled: yes
@@ -32,7 +32,7 @@
   when: not (volttron_was_running | default('false')) and make_volttron_service is defined and make_volttron_service | bool
   become: yes
 
-- name: Shutdown VOLTTRON Not as Service
+- name: Shutdown VOLTTRON Not Run as a Service
   volttron.deployment.volttron_platform:
     volttron_root: "{{volttron_root}}"
     volttron_home: "{{volttron_home}}"

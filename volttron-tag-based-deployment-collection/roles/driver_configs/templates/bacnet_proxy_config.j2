@@ -1,0 +1,10 @@
+{% set ip = hostvars[inventory_hostname]['ansible_default_ipv4']['address'] %}
+{% set octets = ip.split('.') %}
+{
+    "device_address": "{{ ip }}",
+    "max_apdu_length": 1024,
+    "object_id": {{ octets[2] + octets[3] }},
+    "object_name": "Volttron BACnet driver",
+    "vendor_id": 5,
+    "segmentation_supported": "segmentedBoth"
+}
