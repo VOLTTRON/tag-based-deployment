@@ -42,8 +42,8 @@
 
 - name: Clone Economizer RCx
   ansible.builtin.git:
-    repo: "{{ economizer_repo_url }}"
-    version: "{{ economizer_git_branch }}"
+    repo: "{{ economizer_repo_url  | default('git+https://github.com/eclipse-volttron/volttron-economizer-rcx') }}"
+    version: "{{ economizer_git_branch  | default('main') }}"
     dest: volttron-economizer-rcx
   environment:
     http_proxy: "{{ http_proxy }}"
