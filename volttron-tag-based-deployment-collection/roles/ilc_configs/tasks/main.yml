@@ -40,8 +40,8 @@
 
 - name: Clone ILC
   ansible.builtin.git:
-    repo: "{{ ilc_repo_url }}"
-    version: "{{ ilc_git_branch }}"
+    repo: "{{ ilc_repo_url | default('git+https://github.com/eclipse-volttron/volttron-ilc') }}"
+    version: "{{ ilc_git_branch | default('main') }}"
     dest: volttron-ilc
   environment:
     http_proxy: "{{ http_proxy }}"

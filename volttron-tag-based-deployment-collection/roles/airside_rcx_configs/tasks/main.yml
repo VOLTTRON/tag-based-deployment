@@ -42,8 +42,8 @@
 
 - name: Clone Airside
   ansible.builtin.git:
-    repo: "{{ airside_repo_url }}"
-    version: "{{ airside_git_branch }}"
+    repo: "{{ airside_repo_url  | default('git+https://github.com/eclipse-volttron/volttron-airside-rcx') }}"
+    version: "{{ airside_git_branch  | default('main') }}"
     dest: volttron-airside-rcx
   environment:
     http_proxy: "{{ http_proxy }}"
