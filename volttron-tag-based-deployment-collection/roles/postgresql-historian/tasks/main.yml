@@ -1,0 +1,84 @@
+---
+- name: Install Postgres & Bindings
+  ansible.builtin.apt:
+    name: postgresql
+
+- name: Install psycopg2
+  ansible.builtin.pip:
+    name: psycopg2-binary
+
+- name: Find out if PostgreSQL is initialized
+  ansible.builtin.stat:
+    path: "/var/lib/pgsql/data/pg_hba.conf"
+  register: postgres_data
+
+- name: Initialize PostgreSQL
+  shell: "postgresql-setup initdb"
+  when: not postgres_data.stat.exists
+
+- name: Start & Enable Postgresql Service
+  become: yes
+  ansible.builtin.systemd:
+    name: postgresql
+    daemon_reload: yes
+    enabled: yes
+    state: started
+
+- name: Create VOLTTRON Database
+  community.postgresql.postgresql_db:
+    name: { { postgres.db_name } }
+    connect_params: {{ postgres.connect_params }}
+
+- name: Setup TimescaleDB
+  community.ansible.postgresql_ext:
+    name: timescaledb
+    db: {{ postgres.db_name }}
+
+- name: Setup Tables
+  community.postgresql.postgresql_table:
+    db: {{ postgres.db_name }}
+    table: topics
+    columns:
+    - topic_id SERIAL PRIMARY KEY NOT NULL
+    - topic_name VARCHAR(255) UNIQUE NOT NULL
+    - metadata TEXT
+    state: present
+
+- name: Setup Tables
+  community.postgresql.postgresql_table:
+    db: {{ postgres.db_name }}
+    table: data
+    columns:
+      - ts TIMESTAMP UNIQUE NOT NULL
+      - topic_id INTEGER UNIQUE NOT NULL
+      - value_string TEXT NOT NULL
+    state: present
+
+- name: Create Hypertable
+  community.postgresql.postgresql_query:
+    db: volttron
+    query: SELECT create_hypertable(data, 'ts', if_not_exists => true)
+
+- name: Create Index to Speed Up Data Access
+  community.postgresql.postgresql_idx:
+    db: {{ postgres.db_name }}
+    table: data
+    columns: topic_id,ts
+    name: idx_data
+    state: present
+
+- name: Create Database User
+  community.postgresql.postgresql_user:
+    db: {{ postgres.db_name }}
+    name: {{ postgres.user }}
+    encrypted: yes
+    password: {{ postgres.password }}
+
+- name: Grant User Privileges on Database
+  community.postgresql.postgresql_user:
+    db: {{ postgres.dbname }}
+    privs: SELECT,INSERT,UPDATE
+    type: database
+    objs: {{ postgres.dbname }}
+    roles: {{ postgres.user }}
+    grant_option: true

@@ -23,13 +23,13 @@
     - volttron.tag_based_deployment.suspend_volttron_and_get_state
     - volttron.tag_based_deployment.config_generators
     - role: volttron.tag_based_deployment.driver_configs
-      when: driver_generator is defined
+      when: site_info.driver is true
     - role: volttron.tag_based_deployment.airside_rcx_configs
-      when: airside_rcx_generator is defined
+      when: site_info.airside is true
     - role: volttron.tag_based_deployment.economizer_rcx_configs
-      when: economizer_rcx_generator is defined
+      when: site_info.economizer is true
     - role: volttron.tag_based_deployment.ilc_configs
-      when: ilc_generator is defined
+      when: site_info.ilc is true
     - volttron.tag_based_deployment.restore_volttron_state
 
 - name: Setup Historian Tunnel

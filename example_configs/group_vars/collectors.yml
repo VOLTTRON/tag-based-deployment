@@ -14,7 +14,7 @@ agents_to_install:
     agent_enabled: False
     agent_tag: listener
 
-tag_data:
+semantic_data:
   ### For json data_source (comment if using db):
   json:
     source_path: "/path/to/file"
